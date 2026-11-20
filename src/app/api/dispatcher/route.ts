@@ -3,10 +3,9 @@ import { SimulationResult, RecoveryAction } from '@/engine/types';
 
 export async function POST(request: Request) {
   try {
-    const { result, recoveryOptions, baselineResult } = (await request.json()) as {
+    const { result, recoveryOptions } = (await request.json()) as {
       result: SimulationResult;
       recoveryOptions: RecoveryAction[];
-      baselineResult: SimulationResult | null;
     };
 
     if (!result) {

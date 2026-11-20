@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import networkDataRaw from '@/data/flight_network.json';
 import { runSimulation } from '@/engine/simulator';
 import { generateRecoveryOptions } from '@/engine/recovery';
@@ -8,7 +8,6 @@ import {
   AirportClosure,
   FlightNetworkData,
   RecoveryAction,
-  SimulationResult,
 } from '@/engine/types';
 import { MetricCounters } from '@/components/MetricCounters';
 import { NetworkMap } from '@/components/NetworkMap';
@@ -31,39 +30,27 @@ export default function Home() {
   const [selectedAirport, setSelectedAirport] = useState<string | null>('BOM');
   const [selectedFlightId, setSelectedFlightId] = useState<string | null>(null);
 
-  const [result, setResult] = useState<SimulationResult>(() =>
-    runSimulation(networkData, activeClosure, activeRecoveries)
+  // Pure declarative derivation: avoids redundant cascading state updates in useEffect
+  const result = useMemo(
+    () => runSimulation(networkData, activeClosure, activeRecoveries),
+    [activeClosure, activeRecoveries]
   );
 
-  const [baselineResult, setBaselineResult] = useState<SimulationResult | null>(() =>
-    activeRecoveries.length > 0 && activeClosure
-      ? runSimulation(networkData, activeClosure, [])
-      : null
+  const baselineResult = useMemo(
+    () =>
+      activeRecoveries.length > 0 && activeClosure
+        ? runSimulation(networkData, activeClosure, [])
+        : null,
+    [activeClosure, activeRecoveries]
   );
 
-  const [recoveryOptions, setRecoveryOptions] = useState<RecoveryAction[]>([]);
-
-  const updateSimulation = useCallback(() => {
-    const newResult = runSimulation(networkData, activeClosure, activeRecoveries);
-    setResult(newResult);
-
-    if (activeRecoveries.length > 0 && activeClosure) {
-      setBaselineResult(runSimulation(networkData, activeClosure, []));
-    } else {
-      setBaselineResult(null);
-    }
-
-    if (activeClosure) {
-      const baseline = runSimulation(networkData, activeClosure, []);
-      setRecoveryOptions(generateRecoveryOptions(networkData, baseline));
-    } else {
-      setRecoveryOptions([]);
-    }
-  }, [activeClosure, activeRecoveries]);
-
-  useEffect(() => {
-    updateSimulation();
-  }, [updateSimulation]);
+  const recoveryOptions = useMemo(
+    () =>
+      activeClosure
+        ? generateRecoveryOptions(networkData, runSimulation(networkData, activeClosure, []))
+        : [],
+    [activeClosure]
+  );
 
   const handleToggleRecovery = (action: RecoveryAction) => {
     setActiveRecoveries((prev) => {
