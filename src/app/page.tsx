@@ -16,6 +16,7 @@ import { DisruptionControl } from '@/components/DisruptionControl';
 import { CascadeTimeline } from '@/components/CascadeTimeline';
 import { AIDispatcher } from '@/components/AIDispatcher';
 import { FlightTable } from '@/components/FlightTable';
+import { SkiperThemeToggle } from '@/components/SkiperThemeToggle';
 
 const networkData = networkDataRaw as unknown as FlightNetworkData;
 
@@ -107,27 +108,8 @@ export default function Home() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          {/* Dark / Light Mode Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="mono focus-visible:ring-1 focus-visible:ring-[var(--color-accent)] active:scale-95 disabled:opacity-50"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '4px 10px',
-              borderRadius: '3px',
-              border: '1px solid var(--color-rule-2)',
-              background: 'var(--color-paper-2)',
-              color: 'var(--color-ink)',
-              fontSize: '11px',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-            }}
-            aria-label="Toggle dark and light color mode"
-          >
-            <span>{theme === 'dark' ? 'Light' : 'Dark'} mode</span>
-          </button>
+          {/* Skiper Animated Theme Transition Toggle */}
+          <SkiperThemeToggle />
 
           <div className="mono" style={{ display: 'flex', gap: '20px', fontSize: '11px' }}>
             <div style={{ textAlign: 'right' }}>
