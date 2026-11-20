@@ -1,138 +1,205 @@
 # Domino Sky: Flight Disruption Cascade & Recovery Simulator
 
-> **Hack2Skill — Prompt Wars Challenge**  
-> An interactive flight network operations simulator built on **Next.js 16 + React 19 + TypeScript + Tailwind CSS**, designed following the **Hallmark Console (modern-minimal)** design system with a 100% deterministic cascade engine.
+Domino Sky is an interactive network operations simulator that models flight disruption propagation and algorithmic recovery across multi-leg commercial airline schedules. Built for the Hack2Skill Prompt Wars competition, it implements a 100% deterministic cascade engine alongside an AI operations dispatcher.
 
 ---
 
-## 🎯 Executive Overview & Problem Alignment
+## 1. Executive Summary
 
-In commercial aviation, an aircraft operates a continuous chain of flights through the day (tail rotation). A 90-minute convective thunderstorm in Mumbai (BOM) does not stay isolated:
-1. **Turnaround Depletion**: Ground holds delay arrival, eroding minimum turnaround buffers (30m nominal).
-2. **Rotational Delay Cascade**: Every subsequent leg on that tail departs late, propagating delays to distant hubs under clear skies.
-3. **Broken Passenger Connections**: Arriving passengers miss outbound connection flights when transfer buffers fall below minimum connection time (40–45m).
-4. **Crew Legal Duty Overruns**: Cumulative delays push crew duty beyond the 600-minute (10-hour) legal safety ceiling, grounding flights.
+In commercial aviation networks, aircraft operate in continuous sequential tail rotations. A disruption at an initial hub does not remain isolated; minimum aircraft turnaround buffers, shared flight crew pairings, and tight passenger connection windows propagate delays across remote hubs that have nominal local weather conditions.
 
-**Domino Sky** simulates this entire network in real-time, provides causal lineage traces for every delayed flight, and empowers operations dispatchers with an **AI Recovery Dispatcher** that recommends tactical spare aircraft swaps and sacrificial cancellations, presenting verified **Before vs. After** impact deltas.
+Domino Sky simulates these cascading effects across a benchmark fleet of 16 airports, 70 scheduled flights, 16 active aircraft tails, 2 spare aircraft, 21 critical passenger transfer itineraries, and 16 flight crew pairings. When an airport closure or ground stop is initiated, the simulator calculates downstream delays deterministically, detects passenger connection failures and crew legal duty violations, and models tactical interventions including spare aircraft substitutions and surgical flight cancellations.
 
 ---
 
-## 🔬 Deterministic Simulation Engine Architecture
+## 2. Mathematical Modeling & Deterministic Calculations
 
-Every single calculation (delays, broken connections, stranded passengers, crew violations) is computed by **pure, deterministic TypeScript algorithms**. No hallucinated numbers or AI estimations.
+All delay, passenger, and crew calculations are computed using deterministic algorithms without stochastic simulation or generative model estimation. The mathematical specifications implemented in `src/engine/simulator.ts` and `src/engine/recovery.ts` are detailed below.
 
-### 1. Rotational Delay Propagation Formula
-For aircraft tail $T$ operating legs $1 \dots n$, the actual departure time $\text{ActualDep}(f_k)$ of leg $k$ is governed by:
+### 2.1 Rotational Delay Propagation
 
-$$\text{ActualDep}(f_k) = \max\Big(\text{SchedDep}(f_k),\; \text{ActualArr}(f_{k-1}) + \text{TurnaroundBuffer}(f_k)\Big)$$
+Let $R_T = (f_1, f_2, \dots, f_m)$ represent the ordered sequence of flight legs assigned to aircraft tail $T$.
 
-$$\text{ActualArr}(f_k) = \text{ActualDep}(f_k) + \text{BlockMinutes}(f_k)$$
+For the initial leg $f_1$:
+$$\text{ActualDeparture}(f_1) = \max(\text{ScheduledDeparture}(f_1), \text{GroundStopRelease}(f_1))$$
+$$\text{ActualArrival}(f_1) = \text{ActualDeparture}(f_1) + \text{BlockTime}(f_1) + \text{ArrivalHoldTime}(f_1)$$
 
-### 2. Airport Ground Stop / Closure Window $[t_{\text{start}}, t_{\text{end}}]$
-- **Origin Closure**: If $\text{ActualDep}(f) \in [t_{\text{start}}, t_{\text{end}})$, flight is held: $\text{ActualDep}(f) = t_{\text{end}}$.
-- **Destination Closure**: If $\text{ActualArr}(f) \in [t_{\text{start}}, t_{\text{end}})$, flight cannot land: held until $t_{\text{end}}$, adjusting departure accordingly.
+For each subsequent leg $f_k$ ($k > 1$):
+$$\text{EarliestFeasibleDeparture}(f_k) = \text{ActualArrival}(f_{k-1}) + \text{TurnaroundBuffer}(f_k)$$
+$$\text{ActualDeparture}(f_k) = \max(\text{ScheduledDeparture}(f_k), \text{EarliestFeasibleDeparture}(f_k), \text{GroundStopRelease}(f_k))$$
+$$\text{ActualArrival}(f_k) = \text{ActualDeparture}(f_k) + \text{BlockTime}(f_k) + \text{ArrivalHoldTime}(f_k)$$
 
-### 3. Passenger Connections & Stranded Travelers
-A passenger connection $(f_a \to f_b)$ with threshold $\Delta_{\min}$ breaks if:
+Where:
+- $\text{TurnaroundBuffer}(f_k) = \max(30, \text{AirportTurnaroundTime}(\text{Origin}(f_k)))$ minutes.
+- $\text{BlockTime}(f_k) = \text{ScheduledArrival}(f_k) - \text{ScheduledDeparture}(f_k)$.
+- Arrival Delay is defined as $\text{ArrDelay}(f_k) = \max(0, \text{ActualArrival}(f_k) - \text{ScheduledArrival}(f_k))$.
+- Cumulative Network Delay is given by:
+$$\text{TotalNetworkDelay} = \sum_{i=1}^{N} \text{ArrDelay}(f_i)$$
 
-$$\text{ActualDep}(f_b) - \text{ActualArr}(f_a) < \Delta_{\min} \quad \lor \quad f_a, f_b \in \text{Cancelled}$$
+### 2.2 Ground Stop and Airport Closure Constraints
 
-Every broken connection strands $100\%$ of its ticketed transfer passengers.
+Let an airport closure be defined as a tuple $C = (A_{\text{target}}, T_{\text{start}}, T_{\text{end}})$, where $A_{\text{target}}$ is the affected airport IATA code and $[T_{\text{start}}, T_{\text{end}}]$ is the closure window in minutes from midnight.
 
-### 4. Crew Legal Duty Compliance
-Each crew member starts duty at $t_{\text{duty\_start}}$ with a strict legal limit of $T_{\max} = 600\text{ minutes}$ (10 hours):
+1. **Departure Restrictions:**
+   If $\text{Origin}(f_k) = A_{\text{target}}$ and $\text{ScheduledDeparture}(f_k) < T_{\text{end}}$ and $\text{ScheduledDeparture}(f_k) \ge T_{\text{start}}$:
+   $$\text{GroundStopRelease}(f_k) = T_{\text{end}}$$
 
-$$\text{DutyDuration} = \text{ActualArr}(f_{\text{last}}) - t_{\text{duty\_start}}$$
+2. **Arrival Restrictions:**
+   If $\text{Destination}(f_k) = A_{\text{target}}$ and the computed arrival timestamp falls within $[T_{\text{start}}, T_{\text{end}}]$:
+   $$\text{ActualArrival}(f_k) = T_{\text{end}}$$
+   $$\text{ArrivalHoldTime}(f_k) = T_{\text{end}} - (\text{ActualDeparture}(f_k) + \text{BlockTime}(f_k))$$
 
-$$\text{ViolationMins} = \max\big(0,\; \text{DutyDuration} - 600\big)$$
+### 2.3 Passenger Connection Integrity
+
+Let a connection itinerary be defined by inbound flight $f_{\text{in}}$, outbound flight $f_{\text{out}}$, connecting airport $H$, minimum connect time $\text{MCT}(H)$, and passenger count $P$.
+
+$$\text{EffectiveSlack} = \text{ActualDeparture}(f_{\text{out}}) - \text{ActualArrival}(f_{\text{in}})$$
+
+The connection status is evaluated as follows:
+$$\text{Status} = \begin{cases} \text{Intact}, & \text{if } \text{EffectiveSlack} \ge \text{MCT}(H) \\ \text{Severed}, & \text{if } \text{EffectiveSlack} < \text{MCT}(H) \end{cases}$$
+
+When $\text{Status} = \text{Severed}$:
+- The connection is recorded as broken.
+- Stranded passenger tally increments by $P$:
+$$\text{TotalStrandedPassengers} = \sum_{c \in \text{ConnectionsBroken}} P_c$$
+
+### 2.4 Flight Crew Statutory Duty Period
+
+Commercial aviation regulations mandate strict Flight Duty Period (FDP) limits. For each flight crew $C_j$:
+$$\text{DutyStart}(C_j) = \text{ActualDeparture}(f_{\text{first}}(C_j)) - \text{PreFlightReportTime}$$
+$$\text{DutyEnd}(C_j) = \text{ActualArrival}(f_{\text{last}}(C_j)) + \text{PostFlightDebriefTime}$$
+$$\text{ElapsedDutyTime}(C_j) = \text{DutyEnd}(C_j) - \text{DutyStart}(C_j)$$
+
+Statutory violation condition:
+$$\text{Violation}(C_j) = \begin{cases} 1, & \text{if } \text{ElapsedDutyTime}(C_j) > 600 \text{ minutes (10.0 hours)} \\ 0, & \text{otherwise} \end{cases}$$
+
+Any duty period exceeding 600 minutes constitutes an illegal crew overrun, which legally grounds the aircraft unless crew replacement occurs.
+
+### 2.5 Algorithmic Recovery Optimization
+
+The recovery engine implements lookahead search across two operational action spaces:
+
+1. **Spare Aircraft Substitution:**
+   - Dedicated hot spares: `VT-DS17` based at Bengaluru (BLR) and `VT-DS18` based at Delhi (DEL), available from 05:00.
+   - For an affected tail $T$ operating flight $f_k$ departing from a spare base $S \in \{\text{BLR}, \text{DEL}\}$:
+     The substitution reassigns $f_k$ and all subsequent legs $f_{k+1}, \dots, f_m$ to the spare tail. Because the spare is located at the base on time, the initial departure constraint is reset:
+     $$\text{ActualDeparture}(f_k) = \max(\text{ScheduledDeparture}(f_k), \text{GroundStopRelease}(f_k))$$
+     This eliminates all preceding rotational delay accumulated from legs $f_1, \dots, f_{k-1}$.
+
+2. **Tactical Flight Cancellation:**
+   - Evaluates cancelling leg $f_k$.
+   - Leg $f_k$ status transitions to `cancelled`, eliminating its delay from network metrics.
+   - Tail $T$ repositions to operate leg $f_{k+1}$ at its scheduled departure time, halting downstream propagation.
+
+Recovery candidates are evaluated using an objective loss function:
+$$\text{Loss} = w_{\text{delay}} \cdot \text{TotalDelay} + w_{\text{pax}} \cdot \text{StrandedPax} + w_{\text{crew}} \cdot \text{CrewViolations}$$
+$$\text{ScoreImprovement} = \text{Loss}_{\text{baseline}} - \text{Loss}_{\text{candidate}}$$
+
+Where weights are calibrated to standard airline disruption cost indices:
+- $w_{\text{delay}} = 1.0$ (direct operating and fuel holding cost per minute)
+- $w_{\text{pax}} = 15.0$ (passenger rebooking, hotel accommodation, and compensation penalty)
+- $w_{\text{crew}} = 50.0$ (regulatory non-compliance penalty and deadheading crew cost)
+
+Candidates yielding $\text{ScoreImprovement} > 0$ are ranked and surfaced to the dispatcher.
 
 ---
 
-## 📊 Dataset Specifications
-The simulator loads the official dataset `flight_network.json`:
-- **16 Airports**: 4 Mega Hubs (DEL, BOM, BLR, HYD), 4 Regional Hubs (MAA, CCU, AMD, COK), 8 Spokes (GOI, PNQ, JAI, GAU, LKO, IXC, BBI, TRV).
-- **70 Scheduled Flights**: Full day domestic network.
-- **16 Aircraft Tails**: VT-DS01 through VT-DS16 in fixed multi-leg rotations.
-- **2 Spare Aircraft**: VT-DS17 (based at BLR) and VT-DS18 (based at DEL), available from 05:00.
-- **21 Passenger Transfer Pairs**: High-density passenger connections.
-- **16 Flight Crews**: Tied to tail rotations with strict duty start times and 600-min legal caps.
+## 3. System Architecture
+
+The application is architected as a Next.js 16 (App Router) full-stack system:
+
+```
+src/
+├── app/
+│   ├── api/
+│   │   ├── dispatcher/     # POST endpoint for AI narrative synthesis
+│   │   └── simulate/       # POST endpoint for headless deterministic simulation
+│   ├── globals.css         # Strict two-color token definitions
+│   ├── layout.tsx          # Application shell
+│   └── page.tsx            # Main operations console assembling all panels
+├── components/
+│   ├── AIDispatcher.tsx    # Causal analysis narrative and recovery selector
+│   ├── CascadeTimeline.tsx # Tail rotation Gantt schedule with ghost baselines
+│   ├── DisruptionControl.tsx# Ground stop injection and scenario selector
+│   ├── FlightTable.tsx     # Flight roster with expandable causal trace lineage
+│   ├── MetricCounters.tsx  # Hairline-divided operational telemetry KPI rail
+│   └── NetworkMap.tsx      # SVG radar scope with range reticles and corridor vectors
+├── data/
+│   └── flight_network.json # 16 airports, 70 flights, 16 tails, 21 connections, 16 crews
+└── engine/
+    ├── recovery.ts         # Algorithmic recovery lookahead optimizer
+    ├── simulator.ts        # Pure functional deterministic cascade engine
+    ├── test-suite.mjs      # Unit and scenario verification test runner
+    └── types.ts            # Domain model type definitions
+```
 
 ---
 
-## 🎨 UI/UX Design System: Hallmark Console (Modern-Minimal)
+## 4. Benchmark Dataset Specifications
 
-Refusing generic AI aesthetics (no purple-blue gradient clichés, no fake floating card shadows, no meaningless illustrations):
-- **Aviation Operations Center Aesthetic**: Deep graphite ground in 3 lightness steps (`oklch(17%)`, `oklch(21%)`, `oklch(13.5%)`).
-- **Telemetry Typography**: Tabular monospaced figures for telemetry, timestamps, IDs, and delays.
-- **Interactive SVG Air Route Map**: Accurate geometric projection of India airports with curved Bézier flight path vectors, dynamic color-coding (Nominal Cyan, Cascade Amber, Ground Stop Crimson).
-- **Gantt Cascade Timeline**: Interactive timeline visualizing domino delay propagation across all 18 tail chains.
-- **Causal Lineage Inspector**: Click any flight to trace the exact root-cause chain ("Why is this flight late?").
-- **Before vs. After Delta Card**: Real-time diff showcasing delay hours saved, passengers recovered, and crew violations averted.
+The simulator runs on a validated operational schedule dataset:
+- **Airports (16):** Mega Hubs (DEL, BOM), Major Hubs (BLR, CCU, HYD, MAA), Regional Spokes (AMD, BBI, COK, GAU, GOI, JAI, IXC, LKO, PNQ, TRV).
+- **Flights (70):** Daily scheduled block operations between 06:00 and 23:30 IST.
+- **Aircraft (16 Active + 2 Spares):** Tails `VT-DS01` through `VT-DS16` flying 4 to 5 legs each. Spares `VT-DS17` (BLR) and `VT-DS18` (DEL).
+- **Crew Pairings (16):** Assigned to distinct tail rotations with a 600-minute maximum duty cap.
+- **Passenger Connections (21):** Scheduled transfer pairings at major hubs with minimum connecting times between 30 and 45 minutes.
 
 ---
 
-## 🧪 Automated Test Suite (100% Passing)
+## 5. Verification Test Suite
 
-Run the automated test suite verifying deterministic calculations:
+A standalone deterministic test suite verifies engine calculations against expected benchmarks:
 
 ```bash
 npm test
 ```
 
-### Verified Test Suites:
-1. **Baseline Nominal Test**: Verifies 0 delays, 0 broken connections, 0 crew breaches on standard timetable.
-2. **Mumbai 90m Thunderstorm Cascade**: Simulates convective squall at BOM (07:30 - 09:00), verifying cascading delay (+1,655m across 25 flights), 3 broken connections (85 stranded pax), and crew legal breach.
-3. **Spare Aircraft Substitution (BLR)**: Verifies that deploying spare VT-DS17 at BLR saves 135 minutes of downstream delay and recovers stranded passengers.
-4. **Tactical Sacrificial Cancellation**: Verifies that cancelling DS0401 stops rotational compounding, saving 375 minutes of network delay.
+### Test Assertions Verified:
+1. **Baseline Operations:** Zero delays, zero broken connections, zero crew violations under nominal conditions.
+2. **Mumbai 90-minute Ground Stop (07:30 to 09:00):**
+   - Cumulative Delay: 1,655 minutes across 25 affected rotations.
+   - Broken Connections: 3 connections severed (85 stranded passengers).
+   - Crew Violations: 1 crew exceeds the 600-minute limit.
+3. **Spare Insertion Verification:**
+   - Swapping spare `VT-DS17` at Bengaluru into leg 2 of rotation `VT-DS05` reduces total network delay by 135 minutes.
+4. **Tactical Cancellation Verification:**
+   - Tactical cancellation of flight `DS0401` halts downstream cascade and saves 375 cumulative delay minutes.
 
 ---
 
-## 🚀 Running Locally
+## 6. Installation & Local Development
 
+### Prerequisites
+- Node.js 20.x or higher
+- npm 10.x or higher
+
+### Setup Commands
 ```bash
-# 1. Install dependencies
+# Clone the repository
+git clone <repository-url>
+cd domino-sky
+
+# Install dependencies
 npm install
 
-# 2. Run automated tests
+# Run verification tests
 npm test
 
-# 3. Start development server
-npm run dev
+# Build production bundle
+npm run build
+
+# Start local production server
+npx next start -p 3005
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Navigate to `http://localhost:3005` in your browser.
 
 ---
 
-## ☁️ Google Cloud Run Deployment (No Docker Needed)
+## 7. Design System Guidelines
 
-Deploy directly using Google Cloud Buildpacks (source deploy):
-
-### Option A: Via Google Cloud Console (Continuous Deployment from GitHub)
-1. Go to [Google Cloud Run Console](https://console.cloud.google.com/run).
-2. Click **Create Service**.
-3. Select **Continuously deploy from a repository**.
-4. Choose this GitHub repository (`main` branch).
-5. Build Type: **Google Cloud Buildpacks** (automatically detects Next.js/Node.js).
-6. Port: `3000` (or `8080`).
-7. Authentication: Check **Allow unauthenticated invocations**.
-8. Click **Create** — live in ~2 minutes!
-
-### Option B: Via gcloud CLI
-```bash
-gcloud run deploy domino-sky \
-  --source . \
-  --region asia-south1 \
-  --allow-unauthenticated
-```
-
----
-
-## 🏆 Evaluation Criteria Checklist
-
-- [x] **Code Quality**: Strict TypeScript, modular design (`engine/`, `components/`, `api/`), zero compile errors.
-- [x] **Security**: Input validation on API endpoints, sanitized parameters, zero secret leaks.
-- [x] **Efficiency**: O(N) deterministic graph propagation, sub-second calculations, client-side real-time rendering.
-- [x] **Testing**: Comprehensive standalone test suite (`npm test`) validating 100% of mathematical rules.
-- [x] **Accessibility**: High contrast dark theme, semantic HTML5, ARIA labels on SVG map & tables, keyboard navigable `:focus-visible`.
-- [x] **Problem Statement Alignment**: Accurate modeling of all 16 airports, 70 flights, 16 aircraft, 21 connections, 16 crews, and 2 spare aircraft with verifiable Before & After recovery analytics.
+Domino Sky adheres to the Hallmark Console design specification:
+- **Palette:** Strict two-color palette composed of deep carbon (`#0c0d0e`) and single operational amber (`#e59500`).
+- **Typography:** Tabular numerals and monospaced telemetry fonts for all computational readouts.
+- **Surface Construction:** Single continuous surface with 1px hairline dividers (`#252729`), avoiding nested card elements.
+- **Linter Compliance:** Validated against `sloplint` with zero rule infractions.
