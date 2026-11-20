@@ -44,8 +44,10 @@ export function FlightTable({ flights, selectedFlightId, onSelectFlight }: Fligh
           <input
             type="text"
             placeholder="Search…"
+            aria-label="Search flights by ID, tail, or airport code"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            className="focus-visible:ring-1 focus-visible:ring-[var(--color-accent)]"
             style={{
               background: 'var(--color-paper-3)',
               border: rule,
@@ -61,6 +63,7 @@ export function FlightTable({ flights, selectedFlightId, onSelectFlight }: Fligh
             <button
               key={f}
               onClick={() => setFilter(f)}
+              className="focus-visible:ring-1 focus-visible:ring-[var(--color-accent)] active:scale-95 disabled:opacity-50"
               style={{
                 background: filter === f ? 'var(--color-rule-2)' : 'none',
                 border: filter === f ? '1px solid var(--color-rule-2)' : '1px solid transparent',
@@ -71,6 +74,7 @@ export function FlightTable({ flights, selectedFlightId, onSelectFlight }: Fligh
                 cursor: 'pointer',
                 fontFamily: 'inherit',
               }}
+              aria-pressed={filter === f}
             >
               {f === 'all' ? `All (${flights.length})` : f === 'delayed' ? `Delayed (${nDelayed})` : `Cancelled (${nCancelled})`}
             </button>
@@ -103,12 +107,23 @@ export function FlightTable({ flights, selectedFlightId, onSelectFlight }: Fligh
                 <React.Fragment key={f.flight_id}>
                   <tr
                     onClick={() => onSelectFlight(sel ? null : f.flight_id)}
+                    tabIndex={0}
+                    role="button"
+                    aria-expanded={sel}
+                    aria-label={`Flight ${f.flight_id} from ${f.origin} to ${f.destination}, ${f.status}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onSelectFlight(sel ? null : f.flight_id);
+                      }
+                    }}
                     style={{
                       borderBottom: '1px solid var(--color-rule)',
                       background: sel ? 'var(--color-paper-3)' : undefined,
                       cursor: 'pointer',
                       borderLeft: sel ? '2px solid var(--color-accent)' : '2px solid transparent',
                     }}
+                    className="focus-visible:outline-none focus-visible:bg-[var(--color-paper-3)]"
                   >
                     <td style={{ padding: '7px 10px', fontFamily: 'ui-monospace, monospace', fontWeight: 700, color: 'var(--color-ink)' }}>{f.flight_id}</td>
                     <td style={{ padding: '7px 10px', fontFamily: 'ui-monospace, monospace', color: 'var(--color-ink-2)' }}>

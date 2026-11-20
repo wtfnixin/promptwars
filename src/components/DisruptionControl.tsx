@@ -35,6 +35,7 @@ export function DisruptionControl({ airports, activeClosure, onApplyClosure }: D
         {activeClosure && (
           <button
             onClick={() => onApplyClosure(null)}
+            className="focus-visible:ring-1 focus-visible:ring-[var(--color-accent)] active:scale-95 disabled:opacity-50"
             style={{
               background: 'none',
               border: rule2,
@@ -45,6 +46,7 @@ export function DisruptionControl({ airports, activeClosure, onApplyClosure }: D
               cursor: 'pointer',
               fontFamily: 'inherit',
             }}
+            aria-label="Clear active airport ground stop"
           >
             Clear
           </button>
@@ -86,6 +88,7 @@ export function DisruptionControl({ airports, activeClosure, onApplyClosure }: D
               <button
                 key={p.label}
                 onClick={() => onApplyClosure({ airport_id: p.airport_id, start_time: p.start_time, end_time: p.end_time, reason: p.reason })}
+                className="focus-visible:ring-1 focus-visible:ring-[var(--color-accent)] active:scale-[0.98] disabled:opacity-50"
                 style={{
                   textAlign: 'left',
                   background: active ? 'rgba(229,149,0,0.10)' : 'var(--color-paper-3)',
@@ -95,6 +98,7 @@ export function DisruptionControl({ airports, activeClosure, onApplyClosure }: D
                   cursor: 'pointer',
                   fontFamily: 'inherit',
                 }}
+                aria-pressed={active}
               >
                 <div style={{ fontSize: '11px', fontWeight: 500, color: active ? 'var(--color-accent)' : 'var(--color-ink)' }}>{p.label}</div>
                 <div className="mono" style={{ fontSize: '9px', color: 'var(--color-muted)', marginTop: '2px' }}>{p.airport_id} ({p.start_time} to {p.end_time})</div>
@@ -109,8 +113,10 @@ export function DisruptionControl({ airports, activeClosure, onApplyClosure }: D
         <div style={{ fontSize: '10px', color: 'var(--color-muted)', marginBottom: '8px' }}>Custom closure</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '10px', color: 'var(--color-muted)', marginBottom: '4px' }}>Airport</label>
+            <label htmlFor="target-airport-select" style={{ display: 'block', fontSize: '10px', color: 'var(--color-muted)', marginBottom: '4px' }}>Airport</label>
             <select
+              id="target-airport-select"
+              aria-label="Target airport for ground stop"
               value={selApt}
               onChange={(e) => setSelApt(e.target.value)}
               style={{
@@ -131,18 +137,31 @@ export function DisruptionControl({ airports, activeClosure, onApplyClosure }: D
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '10px', color: 'var(--color-muted)', marginBottom: '4px' }}>Closes</label>
-              <input type="time" value={t0} onChange={(e) => setT0(e.target.value)}
-                style={{ width: '100%', background: 'var(--color-paper-3)', border: rule, borderRadius: '3px', color: 'var(--color-ink)', padding: '5px 8px', fontSize: '11px', fontFamily: 'ui-monospace, monospace', boxSizing: 'border-box' }} />
+              <label htmlFor="closure-start-time" style={{ display: 'block', fontSize: '10px', color: 'var(--color-muted)', marginBottom: '4px' }}>Closes</label>
+              <input
+                id="closure-start-time"
+                aria-label="Closure start time"
+                type="time"
+                value={t0}
+                onChange={(e) => setT0(e.target.value)}
+                style={{ width: '100%', background: 'var(--color-paper-3)', border: rule, borderRadius: '3px', color: 'var(--color-ink)', padding: '5px 8px', fontSize: '11px', fontFamily: 'ui-monospace, monospace', boxSizing: 'border-box' }}
+              />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '10px', color: 'var(--color-muted)', marginBottom: '4px' }}>Reopens</label>
-              <input type="time" value={t1} onChange={(e) => setT1(e.target.value)}
-                style={{ width: '100%', background: 'var(--color-paper-3)', border: rule, borderRadius: '3px', color: 'var(--color-ink)', padding: '5px 8px', fontSize: '11px', fontFamily: 'ui-monospace, monospace', boxSizing: 'border-box' }} />
+              <label htmlFor="closure-end-time" style={{ display: 'block', fontSize: '10px', color: 'var(--color-muted)', marginBottom: '4px' }}>Reopens</label>
+              <input
+                id="closure-end-time"
+                aria-label="Closure reopen time"
+                type="time"
+                value={t1}
+                onChange={(e) => setT1(e.target.value)}
+                style={{ width: '100%', background: 'var(--color-paper-3)', border: rule, borderRadius: '3px', color: 'var(--color-ink)', padding: '5px 8px', fontSize: '11px', fontFamily: 'ui-monospace, monospace', boxSizing: 'border-box' }}
+              />
             </div>
           </div>
           <button
             onClick={() => onApplyClosure({ airport_id: selApt, start_time: t0, end_time: t1, reason: `Custom ground stop: ${selApt} ${t0} to ${t1}` })}
+            className="focus-visible:ring-1 focus-visible:ring-[var(--color-accent)] active:scale-[0.98] disabled:opacity-50"
             style={{
               width: '100%',
               background: 'var(--color-accent)',
