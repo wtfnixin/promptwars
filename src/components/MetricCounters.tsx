@@ -11,131 +11,90 @@ interface MetricCountersProps {
 export function MetricCounters({ metrics, baselineMetrics }: MetricCountersProps) {
   const isRecoveryActive = baselineMetrics !== null;
 
-  const cards = [
+  const stats = [
     {
       label: 'Cumulative delay',
       value: `${metrics.total_delay_minutes}m`,
-      baselineValue: baselineMetrics ? `${baselineMetrics.total_delay_minutes}m` : null,
+      hasDisruption: metrics.total_delay_minutes > 0,
       delta: baselineMetrics
         ? `-${baselineMetrics.total_delay_minutes - metrics.total_delay_minutes}m`
         : null,
-      deltaPositive: baselineMetrics
-        ? baselineMetrics.total_delay_minutes > metrics.total_delay_minutes
-        : false,
-      color: metrics.total_delay_minutes > 0 ? 'var(--color-accent)' : 'var(--color-ok)',
-      unit: 'minutes',
+      context: baselineMetrics ? `from ${baselineMetrics.total_delay_minutes}m` : 'all rotations',
     },
     {
       label: 'Delayed flights',
       value: `${metrics.total_delayed_flights}`,
-      baselineValue: baselineMetrics ? `${baselineMetrics.total_delayed_flights}` : null,
+      hasDisruption: metrics.total_delayed_flights > 0,
       delta: baselineMetrics
         ? `-${baselineMetrics.total_delayed_flights - metrics.total_delayed_flights}`
         : null,
-      deltaPositive: baselineMetrics
-        ? baselineMetrics.total_delayed_flights > metrics.total_delayed_flights
-        : false,
-      color: metrics.total_delayed_flights > 0 ? 'var(--color-accent)' : 'var(--color-ok)',
-      unit: 'of 70 total',
+      context: 'of 70 scheduled',
     },
     {
       label: 'Broken connections',
       value: `${metrics.total_broken_connections}`,
-      baselineValue: baselineMetrics ? `${baselineMetrics.total_broken_connections}` : null,
+      hasDisruption: metrics.total_broken_connections > 0,
       delta: baselineMetrics
         ? `-${baselineMetrics.total_broken_connections - metrics.total_broken_connections}`
         : null,
-      deltaPositive: baselineMetrics
-        ? baselineMetrics.total_broken_connections > metrics.total_broken_connections
-        : false,
-      color: metrics.total_broken_connections > 0 ? 'var(--color-bad)' : 'var(--color-ok)',
-      unit: 'of 21 pairs',
+      context: 'of 21 transfers',
     },
     {
       label: 'Stranded passengers',
       value: `${metrics.total_stranded_passengers}`,
-      baselineValue: baselineMetrics ? `${baselineMetrics.total_stranded_passengers}` : null,
+      hasDisruption: metrics.total_stranded_passengers > 0,
       delta: baselineMetrics
         ? `-${baselineMetrics.total_stranded_passengers - metrics.total_stranded_passengers}`
         : null,
-      deltaPositive: baselineMetrics
-        ? baselineMetrics.total_stranded_passengers > metrics.total_stranded_passengers
-        : false,
-      color: metrics.total_stranded_passengers > 0 ? 'var(--color-bad)' : 'var(--color-ok)',
-      unit: 'passengers impacted',
+      context: 'missed connections',
     },
     {
-      label: 'Crew duty overruns',
+      label: 'Crew legal overruns',
       value: `${metrics.total_crew_violations}`,
-      baselineValue: baselineMetrics ? `${baselineMetrics.total_crew_violations}` : null,
+      hasDisruption: metrics.total_crew_violations > 0,
       delta: baselineMetrics
         ? `-${baselineMetrics.total_crew_violations - metrics.total_crew_violations}`
         : null,
-      deltaPositive: baselineMetrics
-        ? baselineMetrics.total_crew_violations > metrics.total_crew_violations
-        : false,
-      color: metrics.total_crew_violations > 0 ? 'var(--color-bad)' : 'var(--color-ok)',
-      unit: 'over 600m legal limit',
+      context: 'past 600m cap',
     },
     {
-      label: 'Network reliability',
+      label: 'On-time rate',
       value: `${metrics.on_time_percentage}%`,
-      baselineValue: baselineMetrics ? `${baselineMetrics.on_time_percentage}%` : null,
+      hasDisruption: metrics.on_time_percentage < 90,
       delta: baselineMetrics
         ? `+${metrics.on_time_percentage - baselineMetrics.on_time_percentage}%`
         : null,
-      deltaPositive: baselineMetrics
-        ? metrics.on_time_percentage > baselineMetrics.on_time_percentage
-        : false,
-      color:
-        metrics.on_time_percentage >= 85
-          ? 'var(--color-ok)'
-          : metrics.on_time_percentage >= 60
-          ? 'var(--color-accent)'
-          : 'var(--color-bad)',
-      unit: 'on-time rate',
+      context: 'fleet reliability',
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-      {cards.map((card, i) => (
-        <div
-          key={i}
-          className="panel-console p-3 flex flex-col justify-between border border-[var(--color-rule)]"
-        >
+    <div className="panel-minimal divide-y sm:divide-y-0 sm:divide-x divide-[var(--color-rule)] grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+      {stats.map((stat, i) => (
+        <div key={i} className="p-3.5 flex flex-col justify-between">
           <div className="text-[11px] text-[var(--color-muted)]">
-            {card.label}
+            {stat.label}
           </div>
 
-          <div className="my-1.5 flex items-baseline gap-2">
+          <div className="my-2 flex items-baseline gap-2">
             <span
               className="text-2xl font-bold font-mono-measured tracking-tight"
-              style={{ color: card.color }}
+              style={{
+                color: stat.hasDisruption ? 'var(--color-accent)' : 'var(--color-ink)',
+              }}
             >
-              {card.value}
+              {stat.value}
             </span>
 
-            {isRecoveryActive && card.delta && (
-              <span
-                className="text-[11px] font-mono-measured font-semibold px-1 py-0.5 rounded"
-                style={{
-                  color: card.deltaPositive ? 'var(--color-ok)' : 'var(--color-muted)',
-                  backgroundColor: card.deltaPositive
-                    ? 'var(--color-ok-soft)'
-                    : 'var(--color-paper-3)',
-                }}
-              >
-                {card.delta}
+            {isRecoveryActive && stat.delta && (
+              <span className="text-[11px] font-mono-measured text-[var(--color-ink)] border border-[var(--color-rule)] px-1 py-0.5 rounded">
+                {stat.delta}
               </span>
             )}
           </div>
 
-          <div className="flex items-center justify-between text-[10px] text-[var(--color-muted)] font-mono-measured">
-            <span>{card.unit}</span>
-            {isRecoveryActive && card.baselineValue && (
-              <span className="line-through opacity-70">Pre: {card.baselineValue}</span>
-            )}
+          <div className="text-[10px] text-[var(--color-muted)] font-mono-measured">
+            {stat.context}
           </div>
         </div>
       ))}

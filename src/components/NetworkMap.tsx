@@ -81,7 +81,7 @@ export function NetworkMap({
   }, [flights, airportMap]);
 
   return (
-    <div className="panel-console p-4 flex flex-col h-full">
+    <div className="panel-minimal p-4 flex flex-col h-full">
       <div className="flex items-center justify-between pb-3 border-b border-[var(--color-rule)] mb-3">
         <div>
           <h2 className="text-sm font-medium text-[var(--color-ink)]">
@@ -91,18 +91,14 @@ export function NetworkMap({
             Sixteen hubs and spoke terminals with live arc vectors
           </p>
         </div>
-        <div className="flex items-center gap-3 text-xs font-mono-measured">
-          <span className="flex items-center gap-1.5 text-[var(--color-cool)]">
-            <span className="w-2 h-2 rounded-full bg-[var(--color-cool)] inline-block" />
-            Nominal
+        <div className="flex items-center gap-4 text-xs font-mono-measured">
+          <span className="flex items-center gap-1.5 text-[var(--color-muted)]">
+            <span className="w-2 h-2 rounded-full bg-[var(--color-muted)] inline-block" />
+            Nominal route
           </span>
           <span className="flex items-center gap-1.5 text-[var(--color-accent)]">
             <span className="w-2 h-2 rounded-full bg-[var(--color-accent)] inline-block" />
-            Cascade delay
-          </span>
-          <span className="flex items-center gap-1.5 text-[var(--color-bad)]">
-            <span className="w-2 h-2 rounded-full bg-[var(--color-bad)] inline-block" />
-            Ground stop
+            Cascading delay or stop
           </span>
         </div>
       </div>
@@ -134,19 +130,10 @@ export function NetworkMap({
               Math.min(35, Math.hypot(dest.x - origin.x, dest.y - origin.y) * 0.18);
             const pathD = `M ${origin.x} ${origin.y} Q ${midX} ${midY} ${dest.x} ${dest.y}`;
 
-            let strokeColor = 'var(--color-cool)';
-            let strokeOpacity = 0.45;
-            let strokeWidth = 1.2;
-
-            if (cancelledFlights > 0) {
-              strokeColor = 'var(--color-bad)';
-              strokeOpacity = 0.9;
-              strokeWidth = 2.0;
-            } else if (delayedFlights > 0) {
-              strokeColor = 'var(--color-accent)';
-              strokeOpacity = 0.85;
-              strokeWidth = 1.8;
-            }
+            const isDisrupted = delayedFlights > 0 || cancelledFlights > 0;
+            const strokeColor = isDisrupted ? 'var(--color-accent)' : 'var(--color-ink)';
+            const strokeOpacity = isDisrupted ? 0.9 : 0.18;
+            const strokeWidth = isDisrupted ? 1.8 : 0.9;
 
             return (
               <path
@@ -166,16 +153,7 @@ export function NetworkMap({
             const isClosed = closureAirportId === apt.id;
             const isMegaHub = apt.tier === 'mega_hub';
 
-            let nodeColor = 'var(--color-cool)';
-            let nodeRadius = isMegaHub ? 5 : 3.5;
-
-            if (isClosed) {
-              nodeColor = 'var(--color-bad)';
-              nodeRadius = 7;
-            } else if (isSelected) {
-              nodeColor = 'var(--color-accent)';
-              nodeRadius = 6;
-            }
+            const nodeRadius = isMegaHub ? 4.5 : 3;
 
             return (
               <g
@@ -189,9 +167,9 @@ export function NetworkMap({
                     cy={apt.y}
                     r={nodeRadius + 4}
                     fill="none"
-                    stroke={nodeColor}
+                    stroke="var(--color-accent)"
                     strokeWidth="1.5"
-                    strokeOpacity="0.6"
+                    strokeOpacity="0.8"
                   />
                 )}
 
@@ -199,15 +177,15 @@ export function NetworkMap({
                   cx={apt.x}
                   cy={apt.y}
                   r={nodeRadius}
-                  fill={nodeColor}
+                  fill={isClosed ? 'var(--color-accent)' : 'var(--color-ink)'}
                   stroke="var(--color-paper-3)"
-                  strokeWidth="1.5"
+                  strokeWidth="1"
                 />
 
                 <text
                   x={apt.x + 8}
                   y={apt.y + 3}
-                  fill={isClosed ? 'var(--color-bad)' : 'var(--color-ink)'}
+                  fill={isClosed ? 'var(--color-accent)' : 'var(--color-ink)'}
                   fontSize={isMegaHub ? '11px' : '9.5px'}
                   fontWeight={isMegaHub ? '600' : '400'}
                   className="font-mono-measured select-none"
@@ -220,14 +198,14 @@ export function NetworkMap({
         </svg>
 
         {selectedAirport && (
-          <div className="absolute bottom-3 left-3 panel-console p-2.5 text-xs border border-[var(--color-rule-2)] bg-[var(--color-paper-2)]/95 max-w-xs shadow-lg">
+          <div className="absolute bottom-3 left-3 panel-minimal p-2.5 text-xs border border-[var(--color-rule-2)] bg-[var(--color-paper-2)] max-w-xs shadow-lg">
             <div className="flex justify-between items-center mb-1">
               <span className="font-semibold text-[var(--color-ink)]">
                 {airportMap.get(selectedAirport)?.city} ({selectedAirport})
               </span>
               <button
                 onClick={() => onSelectAirport(null)}
-                className="text-[var(--color-muted)] hover:text-[var(--color-ink)] active:text-white text-xs ml-2"
+                className="text-[var(--color-muted)] hover:text-[var(--color-ink)] active:text-white text-xs ml-2 cursor-pointer"
               >
                 ✕
               </button>

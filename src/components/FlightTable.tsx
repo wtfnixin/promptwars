@@ -35,7 +35,7 @@ export function FlightTable({
   });
 
   return (
-    <div className="panel-console p-4 flex flex-col gap-3">
+    <div className="panel-minimal p-4 flex flex-col gap-3">
       {/* Table header & controls */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--color-rule)] pb-2.5">
         <div>
@@ -61,8 +61,8 @@ export function FlightTable({
               onClick={() => setFilter('all')}
               className={`px-2.5 py-1 transition-colors active:scale-95 cursor-pointer ${
                 filter === 'all'
-                  ? 'bg-[var(--color-paper-2)] text-[var(--color-ink)] font-medium'
-                  : 'bg-[var(--color-paper-3)] text-[var(--color-muted)] hover:text-white'
+                  ? 'bg-[var(--color-paper-3)] text-[var(--color-ink)] font-medium'
+                  : 'text-[var(--color-muted)] hover:text-white'
               }`}
             >
               All ({flights.length})
@@ -72,7 +72,7 @@ export function FlightTable({
               className={`px-2.5 py-1 border-l border-[var(--color-rule)] transition-colors active:scale-95 cursor-pointer ${
                 filter === 'delayed'
                   ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)] font-medium'
-                  : 'bg-[var(--color-paper-3)] text-[var(--color-muted)] hover:text-white'
+                  : 'text-[var(--color-muted)] hover:text-white'
               }`}
             >
               Delayed ({flights.filter((f) => f.status === 'delayed').length})
@@ -81,8 +81,8 @@ export function FlightTable({
               onClick={() => setFilter('cancelled')}
               className={`px-2.5 py-1 border-l border-[var(--color-rule)] transition-colors active:scale-95 cursor-pointer ${
                 filter === 'cancelled'
-                  ? 'bg-[var(--color-bad-soft)] text-[var(--color-bad)] font-medium'
-                  : 'bg-[var(--color-paper-3)] text-[var(--color-muted)] hover:text-white'
+                  ? 'bg-[var(--color-paper-3)] text-[var(--color-muted)] font-medium'
+                  : 'text-[var(--color-muted)] hover:text-white'
               }`}
             >
               Cancelled ({flights.filter((f) => f.status === 'cancelled').length})
@@ -118,7 +118,7 @@ export function FlightTable({
                     onClick={() => onSelectFlight(isSelected ? null : f.flight_id)}
                     className={`cursor-pointer transition-colors ${
                       isSelected
-                        ? 'bg-[var(--color-paper-2)] border-l-2 border-l-[var(--color-accent)]'
+                        ? 'bg-[var(--color-paper-3)] border-l-2 border-l-[var(--color-accent)]'
                         : 'hover:bg-[var(--color-paper-3)]/60'
                     }`}
                   >
@@ -128,7 +128,7 @@ export function FlightTable({
                     <td className="py-2 px-2 text-[var(--color-ink-2)]">
                       {f.assigned_tail_id}
                       {f.assigned_tail_id !== f.tail_id && (
-                        <span className="ml-1 text-[9px] px-1 py-0.5 rounded bg-[var(--color-ok-soft)] text-[var(--color-ok)]">
+                        <span className="ml-1 text-[9px] px-1 py-0.5 rounded border border-[var(--color-accent)] text-[var(--color-accent)]">
                           Spare
                         </span>
                       )}
@@ -142,7 +142,7 @@ export function FlightTable({
                     </td>
                     <td className="py-2 px-2 font-semibold">
                       {isCancelled ? (
-                        <span className="text-[var(--color-bad)]">Cancelled</span>
+                        <span className="text-[var(--color-muted)] line-through">Cancelled</span>
                       ) : (
                         <span>
                           {f.actual_dep} to {f.actual_arr}
@@ -153,17 +153,17 @@ export function FlightTable({
                       {f.arr_delay_mins > 0 ? (
                         <span className="text-[var(--color-accent)]">+{f.arr_delay_mins}m</span>
                       ) : (
-                        <span className="text-[var(--color-ok)]">0m</span>
+                        <span className="text-[var(--color-muted)]">0m</span>
                       )}
                     </td>
                     <td className="py-2 px-2">
                       <span
                         className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
                           isCancelled
-                            ? 'bg-[var(--color-bad-soft)] text-[var(--color-bad)]'
+                            ? 'border border-[var(--color-rule-2)] text-[var(--color-muted)]'
                             : isDelayed
                             ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)]'
-                            : 'bg-[var(--color-ok-soft)] text-[var(--color-ok)]'
+                            : 'text-[var(--color-muted)]'
                         }`}
                       >
                         {f.status}
@@ -193,12 +193,12 @@ export function FlightTable({
                                 </p>
                               ))
                             ) : (
-                              <p className="text-[var(--color-ok)]">
+                              <p className="text-[var(--color-muted)]">
                                 No rotational or closure delay. Operating on planned schedule.
                               </p>
                             )}
                             {f.cancellation_reason && (
-                              <p className="text-[var(--color-bad)] font-semibold">
+                              <p className="text-[var(--color-accent)] font-semibold">
                                 Cancellation reason: {f.cancellation_reason}
                               </p>
                             )}

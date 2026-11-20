@@ -43,7 +43,7 @@ export function CascadeTimeline({
   const hours = [5, 7, 9, 11, 13, 15, 17, 19, 21, 23];
 
   return (
-    <div className="panel-console p-4 flex flex-col gap-3">
+    <div className="panel-minimal p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between border-b border-[var(--color-rule)] pb-2.5">
         <div>
           <h2 className="text-sm font-medium text-[var(--color-ink)]">
@@ -53,22 +53,18 @@ export function CascadeTimeline({
             Aircraft tail chains from VT-DS01 to VT-DS18 showing downstream propagation
           </p>
         </div>
-        <div className="flex items-center gap-3 text-xs font-mono-measured">
+        <div className="flex items-center gap-4 text-xs font-mono-measured">
           <span className="flex items-center gap-1.5 text-[var(--color-muted)]">
             <span className="w-2.5 h-1.5 border border-[var(--color-rule-2)] bg-transparent inline-block" />
             Scheduled
           </span>
-          <span className="flex items-center gap-1.5 text-[var(--color-cool)]">
-            <span className="w-2.5 h-1.5 bg-[var(--color-cool)] inline-block" />
+          <span className="flex items-center gap-1.5 text-[var(--color-ink)]">
+            <span className="w-2.5 h-1.5 bg-[var(--color-paper-3)] border border-[var(--color-rule)] inline-block" />
             On-time
           </span>
           <span className="flex items-center gap-1.5 text-[var(--color-accent)]">
             <span className="w-2.5 h-1.5 bg-[var(--color-accent)] inline-block" />
             Cascading delay
-          </span>
-          <span className="flex items-center gap-1.5 text-[var(--color-bad)]">
-            <span className="w-2.5 h-1.5 bg-[var(--color-bad)] inline-block" />
-            Cancelled leg
           </span>
         </div>
       </div>
@@ -96,7 +92,7 @@ export function CascadeTimeline({
           <div className="relative divide-y divide-[var(--color-rule)]/50 pt-1">
             {closure && (
               <div
-                className="absolute top-0 bottom-0 bg-[var(--color-bad)]/10 border-x border-[var(--color-bad)]/40 pointer-events-none z-10"
+                className="absolute top-0 bottom-0 bg-[var(--color-accent-soft)] border-x border-[var(--color-accent)]/50 pointer-events-none z-10"
                 style={{
                   left: `${timeToPercent(closure.start_time)}%`,
                   width: `${Math.max(
@@ -105,7 +101,7 @@ export function CascadeTimeline({
                   )}%`,
                 }}
               >
-                <span className="sticky top-0 text-[9px] font-mono-measured text-[var(--color-bad)] bg-[var(--color-paper-3)] px-1 py-0.5 border border-[var(--color-bad)] rounded block w-fit ml-0.5 mt-0.5">
+                <span className="sticky top-0 text-[9px] font-mono-measured text-[var(--color-accent)] bg-[var(--color-paper-3)] px-1 py-0.5 border border-[var(--color-accent)] rounded block w-fit ml-0.5 mt-0.5">
                   Stop: {closure.airport_id} ({closure.start_time} to {closure.end_time})
                 </span>
               </div>
@@ -132,30 +128,27 @@ export function CascadeTimeline({
                     const isCancelled = f.status === 'cancelled';
                     const isDelayed = f.status === 'delayed';
 
-                    let barColor = 'bg-[var(--color-cool)]';
-                    let textColor = 'text-[var(--color-paper-3)]';
+                    let barClass = 'bg-[var(--color-paper-3)] border border-[var(--color-rule-2)] text-[var(--color-ink)]';
 
                     if (isCancelled) {
-                      barColor = 'bg-[var(--color-bad)]';
-                      textColor = 'text-white';
+                      barClass = 'bg-[var(--color-paper)] border border-dashed border-[var(--color-rule-2)] text-[var(--color-muted)] line-through';
                     } else if (isDelayed) {
-                      barColor = 'bg-[var(--color-accent)]';
-                      textColor = 'text-[var(--color-accent-ink)]';
+                      barClass = 'bg-[var(--color-accent)] text-[var(--color-accent-ink)] font-semibold';
                     }
 
                     return (
                       <React.Fragment key={f.flight_id}>
                         {isDelayed && (
                           <div
-                            className="absolute top-1 h-4 border border-[var(--color-rule-2)] rounded-[3px] opacity-40 pointer-events-none"
+                            className="absolute top-1 h-4 border border-[var(--color-rule)] rounded-[3px] opacity-40 pointer-events-none"
                             style={{ left: `${schedLeft}%`, width: `${schedWidth}%` }}
                           />
                         )}
 
                         <button
                           onClick={() => onSelectFlight(f.flight_id)}
-                          className={`absolute top-0.5 h-5 rounded-[3px] ${barColor} px-1.5 text-[9.5px] font-mono-measured font-medium flex items-center justify-between overflow-hidden shadow-sm transition-colors active:scale-95 cursor-pointer ${
-                            isSelected ? 'ring-2 ring-[var(--color-focus)] z-20 brightness-110' : 'hover:brightness-105 z-10'
+                          className={`absolute top-0.5 h-5 rounded-[3px] ${barClass} px-1.5 text-[9.5px] font-mono-measured flex items-center justify-between overflow-hidden shadow-sm transition-colors active:scale-95 cursor-pointer ${
+                            isSelected ? 'ring-2 ring-[var(--color-focus)] z-20' : 'z-10'
                           }`}
                           style={{
                             left: `${actLeft}%`,
@@ -165,8 +158,8 @@ export function CascadeTimeline({
                             isDelayed ? `+${f.arr_delay_mins}m delay` : ''
                           }`}
                         >
-                          <span className={`truncate ${textColor}`}>{f.flight_id}</span>
-                          <span className={`text-[8.5px] opacity-85 ml-1 ${textColor}`}>
+                          <span className="truncate">{f.flight_id}</span>
+                          <span className="text-[8.5px] opacity-80 ml-1">
                             {f.origin} to {f.destination}
                           </span>
                         </button>

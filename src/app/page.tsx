@@ -81,12 +81,9 @@ export default function Home() {
       {/* Top Operations Header */}
       <header className="panel-console p-4 border border-[var(--color-rule)] flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-ok)] inline-block" />
-            <h1 className="text-xl font-bold">
-              Domino Sky: Flight disruption cascade & recovery simulator
-            </h1>
-          </div>
+          <h1 className="text-xl font-bold tracking-tight">
+            Domino Sky: Flight disruption cascade & recovery simulator
+          </h1>
           <p className="text-xs text-[var(--color-muted)] mt-1">
             Network operations across sixteen airports, seventy daily flights, and sixteen tails.
           </p>

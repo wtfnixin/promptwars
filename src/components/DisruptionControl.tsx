@@ -59,7 +59,7 @@ export function DisruptionControl({
   };
 
   return (
-    <div className="panel-console p-4 flex flex-col gap-3">
+    <div className="panel-minimal p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between border-b border-[var(--color-rule)] pb-2.5">
         <div>
           <h2 className="text-sm font-medium text-[var(--color-ink)]">
@@ -72,7 +72,7 @@ export function DisruptionControl({
         {activeClosure && (
           <button
             onClick={() => onApplyClosure(null)}
-            className="text-xs px-2.5 py-1 rounded-[var(--radius-pill)] border border-[var(--color-bad)] text-[var(--color-bad)] hover:bg-[var(--color-bad-soft)] active:brightness-90 transition-colors font-mono-measured cursor-pointer whitespace-nowrap"
+            className="text-xs px-2.5 py-1 rounded-[var(--radius-pill)] border border-[var(--color-rule)] text-[var(--color-ink)] hover:border-[var(--color-accent)] active:scale-95 transition-colors font-mono-measured cursor-pointer whitespace-nowrap"
           >
             Clear closures
           </button>
@@ -170,7 +170,7 @@ export function DisruptionControl({
       </div>
 
       {activeClosure && (
-        <div className="mt-1 p-2 rounded-[var(--radius-pill)] bg-[var(--color-bad-soft)] border border-[var(--color-bad)] text-xs text-[var(--color-bad)] font-mono-measured flex items-center justify-between">
+        <div className="mt-1 p-2 rounded-[var(--radius-pill)] border border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-xs text-[var(--color-ink)] font-mono-measured flex items-center justify-between">
           <span>
             Active ground stop: {activeClosure.airport_id} ({activeClosure.start_time} to {activeClosure.end_time})
           </span>

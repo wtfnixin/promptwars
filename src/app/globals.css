@@ -1,30 +1,25 @@
-/* Hallmark Stamp: domino-sky · theme: console (graphite) · modern-minimal */
-/* Critique: Precision airline operations dispatch room, 1px hairline rules, zero neon slop */
+/* Hallmark Stamp: domino-sky · theme: restrained-monochrome · modern-minimal */
+/* Critique: Strict 2-color editorial operations system. Neutral ink and one amber signal. Zero multi-color dashboard slop. */
 @import "tailwindcss";
 
 :root {
-  --color-paper: oklch(17% 0.008 250);
-  --color-paper-2: oklch(21% 0.009 250);
-  --color-paper-3: oklch(13.5% 0.007 250);
-  --color-ink: oklch(95% 0.005 250);
-  --color-ink-2: oklch(83% 0.008 250);
-  --color-muted: oklch(71% 0.01 250);
-  --color-rule: oklch(31% 0.01 250);
-  --color-rule-2: oklch(42% 0.012 250);
-  --color-accent: oklch(82% 0.15 80);
-  --color-accent-ink: oklch(18% 0.04 75);
-  --color-accent-soft: oklch(29% 0.05 80);
-  --color-focus: oklch(82% 0.15 80);
-  --color-cool: oklch(77% 0.12 245);
-  --color-cool-soft: oklch(29% 0.05 245);
-  --color-ok: oklch(76% 0.15 150);
-  --color-ok-soft: oklch(24.5% 0.03 150);
-  --color-bad: oklch(70% 0.17 25);
-  --color-bad-soft: oklch(24.5% 0.035 25);
+  --color-paper: #0c0d0e;
+  --color-paper-2: #141619;
+  --color-paper-3: #1b1e22;
+  --color-rule: #272a30;
+  --color-rule-2: #3a3e47;
+  --color-ink: #f4f4f5;
+  --color-ink-2: #d4d4d8;
+  --color-muted: #8e929b;
   
-  --radius-card: 10px;
-  --radius-pill: 6px;
-  --rule-hair: 1px;
+  /* The single accent signal */
+  --color-accent: #e59500;
+  --color-accent-ink: #120b00;
+  --color-accent-soft: rgba(229, 149, 0, 0.12);
+  --color-focus: #e59500;
+  
+  --radius-card: 6px;
+  --radius-pill: 4px;
 }
 
 html, body {
@@ -34,6 +29,7 @@ html, body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   margin: 0;
   padding: 0;
+  -webkit-font-smoothing: antialiased;
 }
 
 .font-mono-measured {
@@ -41,26 +37,24 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Hairline panel style */
-.panel-console {
+/* Hairline borders */
+.panel-minimal {
   background-color: var(--color-paper-2);
   border: 1px solid var(--color-rule);
   border-radius: var(--radius-card);
 }
 
-.panel-well {
+.panel-subtle {
   background-color: var(--color-paper-3);
   border: 1px solid var(--color-rule);
   border-radius: var(--radius-card);
 }
 
-/* Accessible focus visible */
 button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible {
   outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
+  outline-offset: 1px;
 }
 
-/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
