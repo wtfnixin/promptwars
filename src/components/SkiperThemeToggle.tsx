@@ -22,13 +22,15 @@ export function SkiperThemeToggle() {
       document.head.appendChild(styleElement);
     }
 
+    // Smooth, cinematic 1.2s circular expansion curve
     styleElement.textContent = `
       ::view-transition-group(root) {
-        animation-duration: 0.75s;
-        animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+        animation-duration: 1.2s;
+        animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
       }
       ::view-transition-new(root) {
         animation-name: reveal-theme-expand;
+        mix-blend-mode: normal;
       }
       ::view-transition-old(root) {
         animation: none;
@@ -39,7 +41,7 @@ export function SkiperThemeToggle() {
           clip-path: circle(0% at 50% 50%);
         }
         to {
-          clip-path: circle(150% at 50% 50%);
+          clip-path: circle(160% at 50% 50%);
         }
       }
     `;
@@ -74,7 +76,7 @@ export function SkiperThemeToggle() {
           alignItems: 'center',
           justifyContent: 'center',
           padding: 0,
-          transition: 'transform 0.2s ease',
+          transition: 'transform 0.3s ease',
         }}
         aria-label="Toggle dark and light theme"
       >
@@ -84,14 +86,14 @@ export function SkiperThemeToggle() {
             width: '20px',
             height: '20px',
             transform: isDark ? 'rotate(0deg)' : 'rotate(180deg)',
-            transition: 'transform 0.5s ease',
+            transition: 'transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)',
           }}
           aria-hidden="true"
         >
           <g>
             <path
               d="M120 67.5C149.25 67.5 172.5 90.75 172.5 120C172.5 149.25 149.25 172.5 120 172.5"
-              fill={isDark ? '#ffffff' : '#0c0d0e'}
+              fill={isDark ? '#ffffff' : '#090a0d'}
             />
             <path
               d="M120 67.5C90.75 67.5 67.5 90.75 67.5 120C67.5 149.25 90.75 172.5 120 172.5"
@@ -100,7 +102,7 @@ export function SkiperThemeToggle() {
           </g>
           <path
             d="M120 3.75C55.5 3.75 3.75 55.5 3.75 120C3.75 184.5 55.5 236.25 120 236.25C184.5 236.25 236.25 184.5 236.25 120C236.25 55.5 184.5 3.75 120 3.75ZM120 214.5V172.5C90.75 172.5 67.5 149.25 67.5 120C67.5 90.75 90.75 67.5 120 67.5V25.5C172.5 25.5 214.5 67.5 214.5 120C214.5 172.5 172.5 214.5 120 214.5Z"
-            fill={isDark ? '#ffffff' : '#0c0d0e'}
+            fill={isDark ? '#ffffff' : '#090a0d'}
           />
         </svg>
       </button>
@@ -110,4 +112,3 @@ export function SkiperThemeToggle() {
     </div>
   );
 }
-

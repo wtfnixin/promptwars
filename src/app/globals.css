@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 :root {
-  /* Default: Dark Mode (Carbon & Operational Amber) */
+  /* Default: Dark Mode (Carbon & Vibrant Aviation Amber) */
   --color-paper:   #0c0d0e;
   --color-paper-2: #141619;
   --color-paper-3: #1b1e22;
@@ -15,7 +15,7 @@
   --color-muted: #7b808a;
 
   --color-accent:     #f59e0b;
-  --color-accent-dim: rgba(245, 158, 11, 0.12);
+  --color-accent-dim: rgba(245, 158, 11, 0.14);
   --color-accent-ink: #000000;
   --color-focus:      #f59e0b;
 
@@ -23,22 +23,22 @@
 }
 
 [data-theme="light"] {
-  /* Light Mode (Clean Slate White & Warm Aerospace Amber/Bronze) */
-  --color-paper:   #fcfdfd;
-  --color-paper-2: #f4f5f7;
-  --color-paper-3: #ebeef2;
+  /* High-Contrast Light Mode (Deep Charcoal Text on Off-White with Bright Amber) */
+  --color-paper:   #ffffff;
+  --color-paper-2: #f6f7f9;
+  --color-paper-3: #eceef2;
 
-  --color-rule:   #d8dce2;
-  --color-rule-2: #c0c6d0;
+  --color-rule:   #d2d6df;
+  --color-rule-2: #b4bac6;
 
-  --color-ink:   #0f1217;
-  --color-ink-2: #333842;
-  --color-muted: #646c79;
+  --color-ink:   #090a0d;
+  --color-ink-2: #242831;
+  --color-muted: #575e6d;
 
-  --color-accent:     #b45309;
-  --color-accent-dim: rgba(180, 83, 9, 0.12);
+  --color-accent:     #d97706;
+  --color-accent-dim: rgba(217, 119, 6, 0.16);
   --color-accent-ink: #ffffff;
-  --color-focus:      #b45309;
+  --color-focus:      #d97706;
 }
 
 html, body {
@@ -49,7 +49,6 @@ html, body {
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
-  transition: background-color 150ms ease, color 150ms ease;
 }
 
 .mono {
