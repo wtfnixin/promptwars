@@ -121,7 +121,7 @@ export function AIDispatcher({
                       </div>
                       <p style={{ fontSize: '10px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>{opt.description}</p>
                       <div className="mono" style={{ marginTop: '6px', fontSize: '10px', color: 'var(--color-ink-2)' }}>
-                        {opt.score_improvement.delay_mins_saved}m delay saved — {opt.score_improvement.passengers_saved} pax rescued
+                        {opt.score_improvement.delay_mins_saved}m delay saved, {opt.score_improvement.passengers_saved} pax rescued
                       </div>
                     </div>
                     <button

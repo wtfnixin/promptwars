@@ -118,10 +118,10 @@ export function FlightTable({ flights, selectedFlightId, onSelectFlight }: Fligh
                       )}
                     </td>
                     <td style={{ padding: '7px 10px', fontFamily: 'ui-monospace, monospace', color: 'var(--color-muted)' }}>L{f.leg_order}</td>
-                    <td style={{ padding: '7px 10px', color: 'var(--color-ink)' }}>{f.origin} — {f.destination}</td>
-                    <td style={{ padding: '7px 10px', fontFamily: 'ui-monospace, monospace', color: 'var(--color-muted)' }}>{f.dep} — {f.arr}</td>
+                    <td style={{ padding: '7px 10px', color: 'var(--color-ink)' }}>{f.origin} to {f.destination}</td>
+                    <td style={{ padding: '7px 10px', fontFamily: 'ui-monospace, monospace', color: 'var(--color-muted)' }}>{f.dep} to {f.arr}</td>
                     <td style={{ padding: '7px 10px', fontFamily: 'ui-monospace, monospace', color: gone ? 'var(--color-muted)' : 'var(--color-ink-2)', textDecoration: gone ? 'line-through' : undefined }}>
-                      {gone ? 'Cancelled' : `${f.actual_dep} — ${f.actual_arr}`}
+                      {gone ? 'Cancelled' : `${f.actual_dep} to ${f.actual_arr}`}
                     </td>
                     <td style={{ padding: '7px 10px', fontFamily: 'ui-monospace, monospace', fontWeight: 700, color: late ? 'var(--color-accent)' : 'var(--color-muted)' }}>
                       {f.arr_delay_mins > 0 ? `+${f.arr_delay_mins}m` : '0m'}
@@ -139,7 +139,7 @@ export function FlightTable({ flights, selectedFlightId, onSelectFlight }: Fligh
                             Causal trace: {f.flight_id} ({f.origin} to {f.destination})
                           </span>
                           <div style={{ color: 'var(--color-ink-2)', marginTop: '4px' }}>
-                            Pax: {f.pax} — Block: {f.block_minutes}m — Load: {Math.round((f.pax / 180) * 100)}%
+                            Pax: {f.pax}, Block: {f.block_minutes}m, Load: {Math.round((f.pax / 180) * 100)}%
                           </div>
                           {f.delay_causes.length > 0 ? (
                             f.delay_causes.map((c, ci) => (

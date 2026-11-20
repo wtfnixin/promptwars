@@ -94,7 +94,7 @@ export function CascadeTimeline({ flights, closure, onSelectFlight, selectedFlig
                   className="mono"
                   style={{ fontSize: '8px', color: 'var(--color-accent)', background: 'var(--color-paper-2)', border: '1px solid var(--color-accent)', padding: '1px 4px', display: 'inline-block', margin: '3px 0 0 2px', borderRadius: '2px' }}
                 >
-                  {closure.airport_id} {closure.start_time}–{closure.end_time}
+                  {closure.airport_id} ({closure.start_time} to {closure.end_time})
                 </span>
               </div>
             )}
@@ -147,7 +147,7 @@ export function CascadeTimeline({ flights, closure, onSelectFlight, selectedFlig
                         {/* Actual bar */}
                         <button
                           onClick={() => onSelectFlight(f.flight_id)}
-                          title={`${f.flight_id}: ${f.origin}–${f.destination} ${f.actual_dep}–${f.actual_arr}${isDelayed ? ` (+${f.arr_delay_mins}m)` : ''}`}
+                          title={`${f.flight_id}: ${f.origin} to ${f.destination} (${f.actual_dep} to ${f.actual_arr})${isDelayed ? ` (+${f.arr_delay_mins}m)` : ''}`}
                           style={{
                             position: 'absolute',
                             top: '4px', height: '16px',

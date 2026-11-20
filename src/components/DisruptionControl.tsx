@@ -97,7 +97,7 @@ export function DisruptionControl({ airports, activeClosure, onApplyClosure }: D
                 }}
               >
                 <div style={{ fontSize: '11px', fontWeight: 500, color: active ? 'var(--color-accent)' : 'var(--color-ink)' }}>{p.label}</div>
-                <div className="mono" style={{ fontSize: '9px', color: 'var(--color-muted)', marginTop: '2px' }}>{p.airport_id} {p.start_time}–{p.end_time}</div>
+                <div className="mono" style={{ fontSize: '9px', color: 'var(--color-muted)', marginTop: '2px' }}>{p.airport_id} ({p.start_time} to {p.end_time})</div>
               </button>
             );
           })}
@@ -165,7 +165,7 @@ export function DisruptionControl({ airports, activeClosure, onApplyClosure }: D
       {/* Dispatch rules footer */}
       <div className="mono" style={{ padding: '12px 20px', borderTop: rule, fontSize: '10px', color: 'var(--color-muted)', lineHeight: 1.6 }}>
         <div>Spare bases: BLR (VT-DS17) and DEL (VT-DS18)</div>
-        <div>Crew duty ceiling: 600 min — Turnaround minimum: 30 min</div>
+        <div>Crew duty ceiling: 600 min. Turnaround minimum: 30 min.</div>
       </div>
     </div>
   );

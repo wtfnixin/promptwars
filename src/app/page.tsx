@@ -81,7 +81,7 @@ export default function Home() {
             Domino Sky
           </h1>
           <p style={{ margin: '2px 0 0', fontSize: '11px', color: 'var(--color-muted)' }}>
-            Flight disruption cascade and recovery simulator. Sixteen airports, seventy daily rotations, sixteen aircraft tails.
+            Flight disruption cascade simulator. Sixteen airports, seventy rotations, sixteen aircraft.
           </p>
         </div>
         <div className="mono" style={{ display: 'flex', gap: '24px', fontSize: '11px' }}>
@@ -156,8 +156,8 @@ export default function Home() {
 
       {/* ── Footer ───────────────────────────────────────────────────────── */}
       <footer className="mono" style={{ borderTop: '1px solid var(--color-rule)', padding: '10px 24px', fontSize: '10px', color: 'var(--color-muted)', display: 'flex', justifyContent: 'space-between' }}>
-        <span>Domino Sky — Hack2Skill Prompt Wars</span>
-        <span>Next.js 16 — TypeScript — Tailwind CSS 4</span>
+        <span>Domino Sky, Hack2Skill Prompt Wars</span>
+        <span>Next.js 16, TypeScript, Tailwind CSS 4</span>
       </footer>
     </main>
   );
