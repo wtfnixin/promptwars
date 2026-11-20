@@ -104,7 +104,31 @@ Candidates yielding $\text{ScoreImprovement} > 0$ are ranked and surfaced to the
 
 ---
 
-## 3. System Architecture
+## 3. Technology Stack & Tooling
+
+Domino Sky is built using a modern full-stack web and computational runtime designed for deterministic state evaluation and sub-millisecond updates:
+
+### 3.1 Core Architecture & Frameworks
+- **Runtime & Language:** Node.js 20.x, TypeScript 5.x (strict mode enabled with zero implicit any).
+- **Application Framework:** Next.js 16.4.6 (App Router architecture with Turbopack bundler).
+- **User Interface Library:** React 19.x with concurrent state rendering and functional component hooks.
+- **Styling & Design System:** Tailwind CSS 4.x with a custom CSS design token layer adhering to the Hallmark Console design specification.
+- **AI Synthesis Layer:** Google Gen AI SDK (`@google/genai`) interfacing Gemini 2.5 Flash for natural language operational briefings, supplemented by a deterministic rule-based template engine fallback for zero-downtime offline execution.
+
+### 3.2 Computational Engine
+- **Functional Simulation Engine:** Pure TypeScript deterministic graph evaluation engine (`src/engine/simulator.ts`).
+- **Optimization Algorithms:** Discrete lookahead state evaluation and greedy multi-objective ranker (`src/engine/recovery.ts`).
+- **Telemetry & Visualization:** Native Scalable Vector Graphics (SVG) with parametric Bézier arc calculation and dynamic range reticles.
+- **Automated Verification:** Native Node.js test harness executing mathematical invariant assertions (`src/engine/test-suite.mjs`).
+- **Code Quality & Slop Linting:** Custom Hallmark AST linter (`sloplint.mjs`) enforcing typography, color token discipline, and accessible contrast standards.
+
+### 3.3 Deployment & Infrastructure
+- **Containerless Buildpack Deployment:** Configured for Google Cloud Run via Google Cloud Buildpacks (`gcloud run deploy --source .`), requiring no manual Dockerfile configuration.
+- **Static & Dynamic Routing:** Server-Side Rendered (SSR) API route handlers for `/api/simulate` and `/api/dispatcher` coupled with client-side interactive telemetry.
+
+---
+
+## 4. System Architecture
 
 The application is architected as a Next.js 16 (App Router) full-stack system:
 
