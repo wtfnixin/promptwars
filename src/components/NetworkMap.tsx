@@ -18,8 +18,6 @@ export function NetworkMap({
   onSelectAirport,
   closureAirportId,
 }: NetworkMapProps) {
-  // Bounding box for India airport coordinates
-  // Lng: ~72.5 (AMD) to ~92.0 (GAU), Lat: ~8.4 (TRV) to ~31.0 (IXC)
   const minLng = 71.0;
   const maxLng = 93.5;
   const minLat = 7.5;
@@ -42,7 +40,6 @@ export function NetworkMap({
     return map;
   }, [airports, project]);
 
-  // Aggregate flight routes to avoid duplicate overlapping lines
   const routes = useMemo(() => {
     const routeMap = new Map<
       string,
@@ -87,11 +84,11 @@ export function NetworkMap({
     <div className="panel-console p-4 flex flex-col h-full">
       <div className="flex items-center justify-between pb-3 border-b border-[var(--color-rule)] mb-3">
         <div>
-          <h2 className="text-sm font-medium tracking-tight text-[var(--color-ink)] uppercase">
-            National Air Route Telemetry Map
+          <h2 className="text-sm font-medium text-[var(--color-ink)]">
+            Air route telemetry map
           </h2>
           <p className="text-xs text-[var(--color-muted)]">
-            16 Hubs & Spoke Terminals · Live Arc Vectors
+            Sixteen hubs and spoke terminals with live arc vectors
           </p>
         </div>
         <div className="flex items-center gap-3 text-xs font-mono-measured">
@@ -101,11 +98,11 @@ export function NetworkMap({
           </span>
           <span className="flex items-center gap-1.5 text-[var(--color-accent)]">
             <span className="w-2 h-2 rounded-full bg-[var(--color-accent)] inline-block" />
-            Cascade Delay
+            Cascade delay
           </span>
           <span className="flex items-center gap-1.5 text-[var(--color-bad)]">
             <span className="w-2 h-2 rounded-full bg-[var(--color-bad)] inline-block" />
-            Ground Stop / Closed
+            Ground stop
           </span>
         </div>
       </div>
@@ -114,9 +111,8 @@ export function NetworkMap({
         <svg
           viewBox="0 0 620 600"
           className="w-full h-full max-h-[500px]"
-          aria-label="Interactive India Flight Route Map"
+          aria-label="Interactive India flight route map"
         >
-          {/* Subtle background grid */}
           <defs>
             <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
               <path
@@ -130,11 +126,12 @@ export function NetworkMap({
           </defs>
           <rect width="100%" height="100%" fill="url(#grid)" />
 
-          {/* Flight Path Arcs */}
           {routes.map((route, i) => {
             const { origin, dest, delayedFlights, cancelledFlights } = route;
             const midX = (origin.x + dest.x) / 2;
-            const midY = (origin.y + dest.y) / 2 - Math.min(35, Math.hypot(dest.x - origin.x, dest.y - origin.y) * 0.18);
+            const midY =
+              (origin.y + dest.y) / 2 -
+              Math.min(35, Math.hypot(dest.x - origin.x, dest.y - origin.y) * 0.18);
             const pathD = `M ${origin.x} ${origin.y} Q ${midX} ${midY} ${dest.x} ${dest.y}`;
 
             let strokeColor = 'var(--color-cool)';
@@ -164,7 +161,6 @@ export function NetworkMap({
             );
           })}
 
-          {/* Airport Nodes */}
           {Array.from(airportMap.values()).map((apt) => {
             const isSelected = selectedAirport === apt.id;
             const isClosed = closureAirportId === apt.id;
@@ -184,10 +180,9 @@ export function NetworkMap({
             return (
               <g
                 key={apt.id}
-                className="cursor-pointer transition-transform"
+                className="cursor-pointer"
                 onClick={() => onSelectAirport(isSelected ? null : apt.id)}
               >
-                {/* Glow ring if closed or selected */}
                 {(isClosed || isSelected) && (
                   <circle
                     cx={apt.x}
@@ -232,7 +227,7 @@ export function NetworkMap({
               </span>
               <button
                 onClick={() => onSelectAirport(null)}
-                className="text-[var(--color-muted)] hover:text-[var(--color-ink)] text-xs ml-2"
+                className="text-[var(--color-muted)] hover:text-[var(--color-ink)] active:text-white text-xs ml-2"
               >
                 ✕
               </button>
@@ -240,7 +235,7 @@ export function NetworkMap({
             <div className="text-[var(--color-muted)] space-y-0.5">
               <p>Airport: {airportMap.get(selectedAirport)?.name}</p>
               <p>Tier: {airportMap.get(selectedAirport)?.tier.replace('_', ' ')}</p>
-              <p>Runway Capacity: {airportMap.get(selectedAirport)?.capacity_per_hour} flt/hr</p>
+              <p>Runway capacity: {airportMap.get(selectedAirport)?.capacity_per_hour} flights per hour</p>
             </div>
           </div>
         )}
@@ -248,4 +243,3 @@ export function NetworkMap({
     </div>
   );
 }
-

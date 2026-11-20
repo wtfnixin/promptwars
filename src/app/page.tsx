@@ -31,7 +31,6 @@ export default function Home() {
   const [selectedAirport, setSelectedAirport] = useState<string | null>('BOM');
   const [selectedFlightId, setSelectedFlightId] = useState<string | null>(null);
 
-  // Compute simulation result
   const [result, setResult] = useState<SimulationResult>(() =>
     runSimulation(networkData, activeClosure, activeRecoveries)
   );
@@ -44,7 +43,6 @@ export default function Home() {
 
   const [recoveryOptions, setRecoveryOptions] = useState<RecoveryAction[]>([]);
 
-  // Recalculate simulation state
   const updateSimulation = useCallback(() => {
     const newResult = runSimulation(networkData, activeClosure, activeRecoveries);
     setResult(newResult);
@@ -84,25 +82,25 @@ export default function Home() {
       <header className="panel-console p-4 border border-[var(--color-rule)] flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <span className="w-3 h-3 rounded-full bg-[var(--color-ok)] inline-block" />
-            <h1 className="text-xl font-bold tracking-tight uppercase">
-              DOMINO SKY · FLIGHT DISRUPTION CASCADE & RECOVERY SIMULATOR
+            <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-ok)] inline-block" />
+            <h1 className="text-xl font-bold">
+              Domino Sky: Flight disruption cascade & recovery simulator
             </h1>
           </div>
-          <p className="text-xs text-[var(--color-muted)] mt-0.5">
-            National Operations Center · 16 Hubs · 70 Daily Flights · 16 Aircraft Tails · 2 Spares
+          <p className="text-xs text-[var(--color-muted)] mt-1">
+            Network operations across sixteen airports, seventy daily flights, and sixteen tails.
           </p>
         </div>
 
         <div className="flex items-center gap-4 text-xs font-mono-measured">
           <div className="text-right">
-            <div className="text-[10px] text-[var(--color-muted)]">SYSTEM STATUS</div>
-            <div className="text-[var(--color-ink)] font-semibold">100% DETERMINISTIC ENGINE</div>
+            <div className="text-[10px] text-[var(--color-muted)]">Calculation engine</div>
+            <div className="text-[var(--color-ink)] font-semibold">100% deterministic</div>
           </div>
           <div className="h-6 w-[1px] bg-[var(--color-rule)]" />
           <div className="text-right">
-            <div className="text-[10px] text-[var(--color-muted)]">OPERATING REGION</div>
-            <div className="text-[var(--color-accent)] font-semibold">INDIA DOMESTIC (IST)</div>
+            <div className="text-[10px] text-[var(--color-muted)]">Local timezone</div>
+            <div className="text-[var(--color-accent)] font-semibold">India Standard Time</div>
           </div>
         </div>
       </header>
@@ -128,7 +126,7 @@ export default function Home() {
             activeClosure={activeClosure}
             onApplyClosure={(closure) => {
               setActiveClosure(closure);
-              setActiveRecoveries([]); // reset recoveries when disruption changes
+              setActiveRecoveries([]);
               if (closure) setSelectedAirport(closure.airport_id);
             }}
           />
@@ -136,17 +134,17 @@ export default function Home() {
           {/* Quick Context Summary Card */}
           <div className="panel-console p-4 border border-[var(--color-rule)] flex-1 flex flex-col justify-between">
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-ink)] mb-2">
-                Operational Dispatch Directives
+              <h3 className="text-xs font-semibold text-[var(--color-ink)] mb-2">
+                Operational dispatch rules
               </h3>
               <p className="text-xs text-[var(--color-muted)] leading-relaxed mb-3">
-                Aircraft fly multiple legs per day in fixed tail rotations. When a plane is grounded, turnaround minimums ({networkData.meta.min_turnaround_minutes}m) guarantee downstream delays. Connections break when the connecting buffer falls below threshold.
+                Aircraft fly multiple legs per day in fixed tail rotations. When an aircraft is held, minimum turnaround buffers guarantee downstream rotational delays. Connections break when transfer slack drops below threshold.
               </p>
             </div>
             <div className="pt-2.5 border-t border-[var(--color-rule)] text-[11px] font-mono-measured text-[var(--color-ink-2)] space-y-1">
-              <div>• Spare Bases: BLR (VT-DS17) & DEL (VT-DS18)</div>
-              <div>• Legal Crew Duty Cap: 600 minutes (10 Hours)</div>
-              <div>• Active Cascade Delay: {result.metrics.total_delay_minutes} min</div>
+              <div>Spare bases: Bengaluru (VT-DS17) and Delhi (VT-DS18)</div>
+              <div>Legal crew duty ceiling: 600 minutes (10 hours)</div>
+              <div>Active network delay: {result.metrics.total_delay_minutes} minutes</div>
             </div>
           </div>
         </div>
@@ -179,14 +177,12 @@ export default function Home() {
       {/* Engineering Footer */}
       <footer className="panel-console p-4 border border-[var(--color-rule)] text-xs text-[var(--color-muted)] flex flex-wrap items-center justify-between gap-3 font-mono-measured">
         <div>
-          Domino Sky · Hack2Skill Prompt Wars · Strict Math & Causal Lineage
+          Domino Sky, Hack2Skill Prompt Wars
         </div>
-        <div className="flex items-center gap-3">
-          <span>Design: Hallmark Console</span>
-          <span>•</span>
-          <span>Zero Hallucinations</span>
-          <span>•</span>
-          <span>Next.js 16 + React 19</span>
+        <div className="flex items-center gap-2">
+          <span>Console theme</span>
+          <span>(graphite)</span>
+          <span>Next.js 16</span>
         </div>
       </footer>
     </main>

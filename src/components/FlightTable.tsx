@@ -39,52 +39,50 @@ export function FlightTable({
       {/* Table header & controls */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--color-rule)] pb-2.5">
         <div>
-          <h2 className="text-sm font-medium tracking-tight text-[var(--color-ink)] uppercase">
-            Network Flight Roster & Causal Inspector
+          <h2 className="text-sm font-medium text-[var(--color-ink)]">
+            Flight roster and causal trace
           </h2>
           <p className="text-xs text-[var(--color-muted)]">
-            70 Active Rotations · Causal Delay Lineage
+            Seventy active rotations with individual causal delay lineage
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Search box */}
           <input
             type="text"
-            placeholder="Search flight, tail, city..."
+            placeholder="Search flight, tail, city…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="bg-[var(--color-paper-3)] border border-[var(--color-rule)] rounded-[var(--radius-pill)] px-2.5 py-1 text-xs text-[var(--color-ink)] font-mono-measured placeholder:text-[var(--color-muted)] w-44"
           />
 
-          {/* Filter Pills */}
           <div className="flex rounded-[var(--radius-pill)] border border-[var(--color-rule)] overflow-hidden text-xs">
             <button
               onClick={() => setFilter('all')}
-              className={`px-2.5 py-1 ${
+              className={`px-2.5 py-1 transition-colors active:scale-95 cursor-pointer ${
                 filter === 'all'
                   ? 'bg-[var(--color-paper-2)] text-[var(--color-ink)] font-medium'
-                  : 'bg-[var(--color-paper-3)] text-[var(--color-muted)]'
+                  : 'bg-[var(--color-paper-3)] text-[var(--color-muted)] hover:text-white'
               }`}
             >
               All ({flights.length})
             </button>
             <button
               onClick={() => setFilter('delayed')}
-              className={`px-2.5 py-1 border-l border-[var(--color-rule)] ${
+              className={`px-2.5 py-1 border-l border-[var(--color-rule)] transition-colors active:scale-95 cursor-pointer ${
                 filter === 'delayed'
                   ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)] font-medium'
-                  : 'bg-[var(--color-paper-3)] text-[var(--color-muted)]'
+                  : 'bg-[var(--color-paper-3)] text-[var(--color-muted)] hover:text-white'
               }`}
             >
               Delayed ({flights.filter((f) => f.status === 'delayed').length})
             </button>
             <button
               onClick={() => setFilter('cancelled')}
-              className={`px-2.5 py-1 border-l border-[var(--color-rule)] ${
+              className={`px-2.5 py-1 border-l border-[var(--color-rule)] transition-colors active:scale-95 cursor-pointer ${
                 filter === 'cancelled'
                   ? 'bg-[var(--color-bad-soft)] text-[var(--color-bad)] font-medium'
-                  : 'bg-[var(--color-paper-3)] text-[var(--color-muted)]'
+                  : 'bg-[var(--color-paper-3)] text-[var(--color-muted)] hover:text-white'
               }`}
             >
               Cancelled ({flights.filter((f) => f.status === 'cancelled').length})
@@ -97,15 +95,15 @@ export function FlightTable({
       <div className="overflow-x-auto max-h-[360px] overflow-y-auto">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
-            <tr className="border-b border-[var(--color-rule)] text-[10px] uppercase tracking-wider text-[var(--color-muted)] font-mono-measured">
-              <th className="py-1.5 px-2">Flight</th>
-              <th className="py-1.5 px-2">Tail</th>
-              <th className="py-1.5 px-2">Leg</th>
-              <th className="py-1.5 px-2">Route</th>
-              <th className="py-1.5 px-2">Sched Dep/Arr</th>
-              <th className="py-1.5 px-2">Actual Dep/Arr</th>
-              <th className="py-1.5 px-2">Delay</th>
-              <th className="py-1.5 px-2">Status</th>
+            <tr className="border-b border-[var(--color-rule)] text-[10px] text-[var(--color-muted)] font-mono-measured">
+              <th className="py-1.5 px-2 font-normal">Flight</th>
+              <th className="py-1.5 px-2 font-normal">Tail</th>
+              <th className="py-1.5 px-2 font-normal">Leg</th>
+              <th className="py-1.5 px-2 font-normal">Route</th>
+              <th className="py-1.5 px-2 font-normal">Scheduled</th>
+              <th className="py-1.5 px-2 font-normal">Actual</th>
+              <th className="py-1.5 px-2 font-normal">Delay</th>
+              <th className="py-1.5 px-2 font-normal">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--color-rule)]/40 font-mono-measured">
@@ -131,23 +129,23 @@ export function FlightTable({
                       {f.assigned_tail_id}
                       {f.assigned_tail_id !== f.tail_id && (
                         <span className="ml-1 text-[9px] px-1 py-0.5 rounded bg-[var(--color-ok-soft)] text-[var(--color-ok)]">
-                          SPARE
+                          Spare
                         </span>
                       )}
                     </td>
                     <td className="py-2 px-2 text-[var(--color-muted)]">L{f.leg_order}</td>
                     <td className="py-2 px-2 font-medium">
-                      {f.origin} → {f.destination}
+                      {f.origin} to {f.destination}
                     </td>
                     <td className="py-2 px-2 text-[var(--color-muted)]">
-                      {f.dep} - {f.arr}
+                      {f.dep} to {f.arr}
                     </td>
                     <td className="py-2 px-2 font-semibold">
                       {isCancelled ? (
                         <span className="text-[var(--color-bad)]">Cancelled</span>
                       ) : (
                         <span>
-                          {f.actual_dep} - {f.actual_arr}
+                          {f.actual_dep} to {f.actual_arr}
                         </span>
                       )}
                     </td>
@@ -168,7 +166,7 @@ export function FlightTable({
                             : 'bg-[var(--color-ok-soft)] text-[var(--color-ok)]'
                         }`}
                       >
-                        {f.status.toUpperCase()}
+                        {f.status}
                       </span>
                     </td>
                   </tr>
@@ -178,30 +176,30 @@ export function FlightTable({
                     <tr className="bg-[var(--color-paper-3)]">
                       <td colSpan={8} className="p-3 border-y border-[var(--color-rule)]">
                         <div className="space-y-1.5 text-xs">
-                          <div className="font-semibold text-[var(--color-accent)] text-[11px] uppercase tracking-wider">
-                            Causal Propagation Trace for {f.flight_id} ({f.origin} → {f.destination})
+                          <div className="font-semibold text-[var(--color-accent)] text-[11px]">
+                            Causal propagation trace for {f.flight_id} ({f.origin} to {f.destination})
                           </div>
                           <div className="text-[var(--color-ink-2)] space-y-1">
                             <p>
-                              • Passenger Load: <strong>{f.pax}</strong> travelers (Seats: 180, Load Factor: {Math.round((f.pax / 180) * 100)}%)
+                              Passenger load: <strong>{f.pax}</strong> travelers (Seats: 180, Load factor: {Math.round((f.pax / 180) * 100)}%)
                             </p>
                             <p>
-                              • Flight Block Time: <strong>{f.block_minutes}</strong> minutes
+                              Flight block time: <strong>{f.block_minutes}</strong> minutes
                             </p>
                             {f.delay_causes.length > 0 ? (
                               f.delay_causes.map((cause, ci) => (
                                 <p key={ci} className="text-[var(--color-accent)]">
-                                  ↳ [{cause.type}] {cause.detail} (+{cause.delay_added_mins}m)
+                                  [{cause.type}] {cause.detail} (+{cause.delay_added_mins}m)
                                 </p>
                               ))
                             ) : (
                               <p className="text-[var(--color-ok)]">
-                                ✓ No rotational or closure delay. Operating on planned schedule.
+                                No rotational or closure delay. Operating on planned schedule.
                               </p>
                             )}
                             {f.cancellation_reason && (
                               <p className="text-[var(--color-bad)] font-semibold">
-                                ⚠ Cancellation Reason: {f.cancellation_reason}
+                                Cancellation reason: {f.cancellation_reason}
                               </p>
                             )}
                           </div>
@@ -218,4 +216,3 @@ export function FlightTable({
     </div>
   );
 }
-

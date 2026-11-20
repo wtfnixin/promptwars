@@ -13,7 +13,7 @@ export function MetricCounters({ metrics, baselineMetrics }: MetricCountersProps
 
   const cards = [
     {
-      label: 'Cumulative Delay',
+      label: 'Cumulative delay',
       value: `${metrics.total_delay_minutes}m`,
       baselineValue: baselineMetrics ? `${baselineMetrics.total_delay_minutes}m` : null,
       delta: baselineMetrics
@@ -26,7 +26,7 @@ export function MetricCounters({ metrics, baselineMetrics }: MetricCountersProps
       unit: 'minutes',
     },
     {
-      label: 'Delayed Flights',
+      label: 'Delayed flights',
       value: `${metrics.total_delayed_flights}`,
       baselineValue: baselineMetrics ? `${baselineMetrics.total_delayed_flights}` : null,
       delta: baselineMetrics
@@ -36,10 +36,10 @@ export function MetricCounters({ metrics, baselineMetrics }: MetricCountersProps
         ? baselineMetrics.total_delayed_flights > metrics.total_delayed_flights
         : false,
       color: metrics.total_delayed_flights > 0 ? 'var(--color-accent)' : 'var(--color-ok)',
-      unit: '/ 70 total',
+      unit: 'of 70 total',
     },
     {
-      label: 'Broken Connections',
+      label: 'Broken connections',
       value: `${metrics.total_broken_connections}`,
       baselineValue: baselineMetrics ? `${baselineMetrics.total_broken_connections}` : null,
       delta: baselineMetrics
@@ -49,10 +49,10 @@ export function MetricCounters({ metrics, baselineMetrics }: MetricCountersProps
         ? baselineMetrics.total_broken_connections > metrics.total_broken_connections
         : false,
       color: metrics.total_broken_connections > 0 ? 'var(--color-bad)' : 'var(--color-ok)',
-      unit: '/ 21 pairs',
+      unit: 'of 21 pairs',
     },
     {
-      label: 'Stranded Passengers',
+      label: 'Stranded passengers',
       value: `${metrics.total_stranded_passengers}`,
       baselineValue: baselineMetrics ? `${baselineMetrics.total_stranded_passengers}` : null,
       delta: baselineMetrics
@@ -62,10 +62,10 @@ export function MetricCounters({ metrics, baselineMetrics }: MetricCountersProps
         ? baselineMetrics.total_stranded_passengers > metrics.total_stranded_passengers
         : false,
       color: metrics.total_stranded_passengers > 0 ? 'var(--color-bad)' : 'var(--color-ok)',
-      unit: 'pax impacted',
+      unit: 'passengers impacted',
     },
     {
-      label: 'Crew Duty Overruns',
+      label: 'Crew duty overruns',
       value: `${metrics.total_crew_violations}`,
       baselineValue: baselineMetrics ? `${baselineMetrics.total_crew_violations}` : null,
       delta: baselineMetrics
@@ -75,10 +75,10 @@ export function MetricCounters({ metrics, baselineMetrics }: MetricCountersProps
         ? baselineMetrics.total_crew_violations > metrics.total_crew_violations
         : false,
       color: metrics.total_crew_violations > 0 ? 'var(--color-bad)' : 'var(--color-ok)',
-      unit: '> 600m legal limit',
+      unit: 'over 600m legal limit',
     },
     {
-      label: 'Network Reliability',
+      label: 'Network reliability',
       value: `${metrics.on_time_percentage}%`,
       baselineValue: baselineMetrics ? `${baselineMetrics.on_time_percentage}%` : null,
       delta: baselineMetrics
@@ -104,7 +104,7 @@ export function MetricCounters({ metrics, baselineMetrics }: MetricCountersProps
           key={i}
           className="panel-console p-3 flex flex-col justify-between border border-[var(--color-rule)]"
         >
-          <div className="text-[11px] uppercase tracking-wider text-[var(--color-muted)]">
+          <div className="text-[11px] text-[var(--color-muted)]">
             {card.label}
           </div>
 
@@ -142,4 +142,3 @@ export function MetricCounters({ metrics, baselineMetrics }: MetricCountersProps
     </div>
   );
 }
-

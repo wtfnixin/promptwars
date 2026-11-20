@@ -16,7 +16,6 @@ export function CascadeTimeline({
   onSelectFlight,
   selectedFlightId,
 }: CascadeTimelineProps) {
-  // Timeline runs from 05:00 (300m) to 23:00 (1380m) = 1080m total
   const timelineStartMins = 300; // 05:00
   const timelineEndMins = 1380;  // 23:00
   const totalMins = timelineEndMins - timelineStartMins;
@@ -28,7 +27,6 @@ export function CascadeTimeline({
     return ((clamped - timelineStartMins) / totalMins) * 100;
   };
 
-  // Group flights by assigned tail
   const tails = useMemo(() => {
     const map = new Map<string, SimulatedFlight[]>();
     flights.forEach((f) => {
@@ -37,24 +35,22 @@ export function CascadeTimeline({
       map.get(tail)!.push(f);
     });
 
-    // Sort tails by ID
     const sorted = Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
     sorted.forEach(([, list]) => list.sort((a, b) => a.leg_order - b.leg_order));
     return sorted;
   }, [flights]);
 
-  // Major hour markers
   const hours = [5, 7, 9, 11, 13, 15, 17, 19, 21, 23];
 
   return (
     <div className="panel-console p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between border-b border-[var(--color-rule)] pb-2.5">
         <div>
-          <h2 className="text-sm font-medium tracking-tight text-[var(--color-ink)] uppercase">
-            Domino Delay Cascade Timeline (Gantt)
+          <h2 className="text-sm font-medium text-[var(--color-ink)]">
+            Domino delay cascade timeline (Gantt)
           </h2>
           <p className="text-xs text-[var(--color-muted)]">
-            Aircraft Tail Chains (VT-DS01 to VT-DS18) · Propagation Downstream
+            Aircraft tail chains from VT-DS01 to VT-DS18 showing downstream propagation
           </p>
         </div>
         <div className="flex items-center gap-3 text-xs font-mono-measured">
@@ -64,15 +60,15 @@ export function CascadeTimeline({
           </span>
           <span className="flex items-center gap-1.5 text-[var(--color-cool)]">
             <span className="w-2.5 h-1.5 bg-[var(--color-cool)] inline-block" />
-            On-Time
+            On-time
           </span>
           <span className="flex items-center gap-1.5 text-[var(--color-accent)]">
             <span className="w-2.5 h-1.5 bg-[var(--color-accent)] inline-block" />
-            Cascading Delay
+            Cascading delay
           </span>
           <span className="flex items-center gap-1.5 text-[var(--color-bad)]">
             <span className="w-2.5 h-1.5 bg-[var(--color-bad)] inline-block" />
-            Cancelled Leg
+            Cancelled leg
           </span>
         </div>
       </div>
@@ -98,7 +94,6 @@ export function CascadeTimeline({
 
           {/* Tail Rows */}
           <div className="relative divide-y divide-[var(--color-rule)]/50 pt-1">
-            {/* Airport Closure Column Band Overlay */}
             {closure && (
               <div
                 className="absolute top-0 bottom-0 bg-[var(--color-bad)]/10 border-x border-[var(--color-bad)]/40 pointer-events-none z-10"
@@ -111,14 +106,13 @@ export function CascadeTimeline({
                 }}
               >
                 <span className="sticky top-0 text-[9px] font-mono-measured text-[var(--color-bad)] bg-[var(--color-paper-3)] px-1 py-0.5 border border-[var(--color-bad)] rounded block w-fit ml-0.5 mt-0.5">
-                  STOP: {closure.airport_id} ({closure.start_time}-{closure.end_time})
+                  Stop: {closure.airport_id} ({closure.start_time} to {closure.end_time})
                 </span>
               </div>
             )}
 
             {tails.map(([tailId, tailFlights]) => (
               <div key={tailId} className="flex items-center py-1.5 hover:bg-[var(--color-paper-3)]/40 transition-colors">
-                {/* Tail Label */}
                 <div className="w-20 shrink-0 text-xs font-mono-measured font-semibold text-[var(--color-ink-2)] flex items-center justify-between pr-2">
                   <span>{tailId}</span>
                   <span className="text-[10px] text-[var(--color-muted)] font-normal">
@@ -126,7 +120,6 @@ export function CascadeTimeline({
                   </span>
                 </div>
 
-                {/* Timeline bar container */}
                 <div className="relative flex-1 h-6">
                   {tailFlights.map((f) => {
                     const schedLeft = timeToPercent(f.dep);
@@ -152,7 +145,6 @@ export function CascadeTimeline({
 
                     return (
                       <React.Fragment key={f.flight_id}>
-                        {/* Ghost Scheduled Bar (if delayed) */}
                         {isDelayed && (
                           <div
                             className="absolute top-1 h-4 border border-[var(--color-rule-2)] rounded-[3px] opacity-40 pointer-events-none"
@@ -160,23 +152,22 @@ export function CascadeTimeline({
                           />
                         )}
 
-                        {/* Actual Operated Flight Bar */}
                         <button
                           onClick={() => onSelectFlight(f.flight_id)}
-                          className={`absolute top-0.5 h-5 rounded-[3px] ${barColor} px-1.5 text-[9.5px] font-mono-measured font-medium flex items-center justify-between overflow-hidden shadow-sm transition-all cursor-pointer ${
+                          className={`absolute top-0.5 h-5 rounded-[3px] ${barColor} px-1.5 text-[9.5px] font-mono-measured font-medium flex items-center justify-between overflow-hidden shadow-sm transition-colors active:scale-95 cursor-pointer ${
                             isSelected ? 'ring-2 ring-[var(--color-focus)] z-20 brightness-110' : 'hover:brightness-105 z-10'
                           }`}
                           style={{
                             left: `${actLeft}%`,
                             width: `${actWidth}%`,
                           }}
-                          title={`${f.flight_id}: ${f.origin} -> ${f.destination} (${f.actual_dep} - ${f.actual_arr}) ${
+                          title={`${f.flight_id}: ${f.origin} to ${f.destination} (${f.actual_dep} to ${f.actual_arr}) ${
                             isDelayed ? `+${f.arr_delay_mins}m delay` : ''
                           }`}
                         >
                           <span className={`truncate ${textColor}`}>{f.flight_id}</span>
                           <span className={`text-[8.5px] opacity-85 ml-1 ${textColor}`}>
-                            {f.origin}-{f.destination}
+                            {f.origin} to {f.destination}
                           </span>
                         </button>
                       </React.Fragment>
@@ -191,4 +182,3 @@ export function CascadeTimeline({
     </div>
   );
 }
-
