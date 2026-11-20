@@ -20,6 +20,8 @@ import { FlightTable } from '@/components/FlightTable';
 const networkData = networkDataRaw as unknown as FlightNetworkData;
 
 export default function Home() {
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
   const [activeClosure, setActiveClosure] = useState<AirportClosure | null>({
     airport_id: 'BOM',
     start_time: '07:30',
@@ -42,6 +44,25 @@ export default function Home() {
   );
 
   const [recoveryOptions, setRecoveryOptions] = useState<RecoveryAction[]>([]);
+
+  useEffect(() => {
+    // Check saved theme or media query
+    const savedTheme = localStorage.getItem('domino-sky-theme') as 'dark' | 'light' | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      setTheme('light');
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    localStorage.setItem('domino-sky-theme', nextTheme);
+    document.documentElement.setAttribute('data-theme', nextTheme);
+  };
 
   const updateSimulation = useCallback(() => {
     const newResult = runSimulation(networkData, activeClosure, activeRecoveries);
@@ -84,15 +105,40 @@ export default function Home() {
             Flight disruption cascade simulator. Sixteen airports, seventy rotations, sixteen aircraft.
           </p>
         </div>
-        <div className="mono" style={{ display: 'flex', gap: '24px', fontSize: '11px' }}>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ color: 'var(--color-muted)', fontSize: '10px' }}>Engine</div>
-            <div style={{ color: 'var(--color-ink)', fontWeight: 600 }}>100% deterministic</div>
-          </div>
-          <div style={{ width: '1px', background: 'var(--color-rule)' }} />
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ color: 'var(--color-muted)', fontSize: '10px' }}>Timezone</div>
-            <div style={{ color: 'var(--color-accent)', fontWeight: 600 }}>IST</div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          {/* Dark / Light Mode Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="mono focus-visible:ring-1 focus-visible:ring-[var(--color-accent)] active:scale-95 disabled:opacity-50"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '4px 10px',
+              borderRadius: '3px',
+              border: '1px solid var(--color-rule-2)',
+              background: 'var(--color-paper-2)',
+              color: 'var(--color-ink)',
+              fontSize: '11px',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+            aria-label="Toggle dark and light color mode"
+          >
+            <span>{theme === 'dark' ? 'Light' : 'Dark'} mode</span>
+          </button>
+
+          <div className="mono" style={{ display: 'flex', gap: '20px', fontSize: '11px' }}>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ color: 'var(--color-muted)', fontSize: '10px' }}>Engine</div>
+              <div style={{ color: 'var(--color-ink)', fontWeight: 600 }}>100% deterministic</div>
+            </div>
+            <div style={{ width: '1px', background: 'var(--color-rule)' }} />
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ color: 'var(--color-muted)', fontSize: '10px' }}>Timezone</div>
+              <div style={{ color: 'var(--color-accent)', fontWeight: 600 }}>IST</div>
+            </div>
           </div>
         </div>
       </header>

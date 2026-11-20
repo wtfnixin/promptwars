@@ -1,28 +1,44 @@
-/* Hallmark Console · domino-sky · 2-color: carbon + amber */
+/* Hallmark Console · domino-sky · 2-color system with dark/light themes */
 @import "tailwindcss";
 
 :root {
-  /* Surface stack */
+  /* Default: Dark Mode (Carbon & Operational Amber) */
   --color-paper:   #0c0d0e;
-  --color-paper-2: #131517;
-  --color-paper-3: #1a1c1f;
+  --color-paper-2: #141619;
+  --color-paper-3: #1b1e22;
 
-  /* Rule lines */
-  --color-rule:   #252729;
-  --color-rule-2: #32353a;
+  --color-rule:   #272a30;
+  --color-rule-2: #3a3e47;
 
-  /* Ink */
-  --color-ink:   #e8e8ea;
-  --color-ink-2: #b4b6bb;
-  --color-muted: #6b6e75;
+  --color-ink:   #f4f4f6;
+  --color-ink-2: #c4c7cf;
+  --color-muted: #7b808a;
 
-  /* Single accent — amber. No other hue in the UI. */
-  --color-accent:     #e59500;
-  --color-accent-dim: rgba(229, 149, 0, 0.10);
-  --color-accent-ink: #100900;
-  --color-focus:      #e59500;
+  --color-accent:     #f59e0b;
+  --color-accent-dim: rgba(245, 158, 11, 0.12);
+  --color-accent-ink: #000000;
+  --color-focus:      #f59e0b;
 
   --radius: 4px;
+}
+
+[data-theme="light"] {
+  /* Light Mode (Clean Slate White & Warm Aerospace Amber/Bronze) */
+  --color-paper:   #fcfdfd;
+  --color-paper-2: #f4f5f7;
+  --color-paper-3: #ebeef2;
+
+  --color-rule:   #d8dce2;
+  --color-rule-2: #c0c6d0;
+
+  --color-ink:   #0f1217;
+  --color-ink-2: #333842;
+  --color-muted: #646c79;
+
+  --color-accent:     #b45309;
+  --color-accent-dim: rgba(180, 83, 9, 0.12);
+  --color-accent-ink: #ffffff;
+  --color-focus:      #b45309;
 }
 
 html, body {
@@ -33,6 +49,7 @@ html, body {
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
 .mono {
