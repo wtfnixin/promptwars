@@ -200,6 +200,16 @@ export function NetworkMap({
           {/* Background grid */}
           <rect width="100%" height="100%" fill="url(#radar-grid)" />
 
+          {/* India Geographic Landmass Silhouette (Precision Flat Hairline, Zero Gradients) */}
+          <path
+            d="M 154 49 L 191 55 L 234 74 L 256 95 L 278 126 L 343 151 L 440 164 L 453 147 L 483 160 L 527 151 L 570 141 L 603 160 L 581 189 L 559 222 L 538 257 L 473 247 L 429 260 L 392 299 L 338 339 L 273 376 L 273 428 L 262 472 L 245 501 L 213 524 L 193 510 L 184 487 L 165 453 L 152 424 L 132 385 L 111 316 L 111 285 L 109 274 L 70 282 L 41 264 L 30 241 L 20 228 L 24 208 L 72 207 L 61 180 L 72 145 L 104 112 L 137 83 L 148 60 Z"
+            fill="var(--color-paper-3)"
+            fillOpacity="0.4"
+            stroke="var(--color-rule-2)"
+            strokeWidth="0.8"
+            strokeDasharray="2 2"
+          />
+
           {/* Graticule Latitude / Longitude lines */}
           <line x1="40" y1="130" x2="580" y2="130" stroke="var(--color-rule)" strokeWidth="0.5" strokeDasharray="3 4" strokeOpacity="0.4" />
           <text x="45" y="125" fill="var(--color-muted)" fontSize="8px" fontFamily="ui-monospace, monospace">LAT 28°N</text>
