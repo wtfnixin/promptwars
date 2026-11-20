@@ -10,157 +10,165 @@ interface CascadeTimelineProps {
   selectedFlightId: string | null;
 }
 
-export function CascadeTimeline({
-  flights,
-  closure,
-  onSelectFlight,
-  selectedFlightId,
-}: CascadeTimelineProps) {
-  const timelineStartMins = 300; // 05:00
-  const timelineEndMins = 1380;  // 23:00
-  const totalMins = timelineEndMins - timelineStartMins;
+export function CascadeTimeline({ flights, closure, onSelectFlight, selectedFlightId }: CascadeTimelineProps) {
+  const TL_START = 300;  // 05:00
+  const TL_END   = 1380; // 23:00
+  const TL_RANGE = TL_END - TL_START;
 
-  const timeToPercent = (timeStr: string) => {
-    const [h, m] = timeStr.split(':').map(Number);
+  const pct = (t: string) => {
+    const [h, m] = t.split(':').map(Number);
     const mins = h * 60 + m;
-    const clamped = Math.max(timelineStartMins, Math.min(timelineEndMins, mins));
-    return ((clamped - timelineStartMins) / totalMins) * 100;
+    return ((Math.max(TL_START, Math.min(TL_END, mins)) - TL_START) / TL_RANGE) * 100;
   };
 
   const tails = useMemo(() => {
-    const map = new Map<string, SimulatedFlight[]>();
+    const m = new Map<string, SimulatedFlight[]>();
     flights.forEach((f) => {
-      const tail = f.assigned_tail_id || f.tail_id;
-      if (!map.has(tail)) map.set(tail, []);
-      map.get(tail)!.push(f);
+      const k = f.assigned_tail_id || f.tail_id;
+      if (!m.has(k)) m.set(k, []);
+      m.get(k)!.push(f);
     });
-
-    const sorted = Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
-    sorted.forEach(([, list]) => list.sort((a, b) => a.leg_order - b.leg_order));
+    const sorted = Array.from(m.entries()).sort(([a], [b]) => a.localeCompare(b));
+    sorted.forEach(([, l]) => l.sort((a, b) => a.leg_order - b.leg_order));
     return sorted;
   }, [flights]);
 
   const hours = [5, 7, 9, 11, 13, 15, 17, 19, 21, 23];
+  const rule = '1px solid var(--color-rule)';
 
   return (
-    <div className="panel-minimal p-4 flex flex-col gap-3">
-      <div className="flex items-center justify-between border-b border-[var(--color-rule)] pb-2.5">
+    <div style={{ padding: '20px 24px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px' }}>
         <div>
-          <h2 className="text-sm font-medium text-[var(--color-ink)]">
-            Domino delay cascade timeline (Gantt)
-          </h2>
-          <p className="text-xs text-[var(--color-muted)]">
-            Aircraft tail chains from VT-DS01 to VT-DS18 showing downstream propagation
-          </p>
-        </div>
-        <div className="flex items-center gap-4 text-xs font-mono-measured">
-          <span className="flex items-center gap-1.5 text-[var(--color-muted)]">
-            <span className="w-2.5 h-1.5 border border-[var(--color-rule-2)] bg-transparent inline-block" />
-            Scheduled
-          </span>
-          <span className="flex items-center gap-1.5 text-[var(--color-ink)]">
-            <span className="w-2.5 h-1.5 bg-[var(--color-paper-3)] border border-[var(--color-rule)] inline-block" />
-            On-time
-          </span>
-          <span className="flex items-center gap-1.5 text-[var(--color-accent)]">
-            <span className="w-2.5 h-1.5 bg-[var(--color-accent)] inline-block" />
-            Cascading delay
-          </span>
+          <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-ink)' }}>Cascade timeline</div>
+          <div style={{ fontSize: '10px', color: 'var(--color-muted)', marginTop: '2px' }}>
+            Tail chains VT-DS01 to VT-DS18. Amber bars are delayed. Ghost outline is the original schedule.
+          </div>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <div className="min-w-[760px]">
-          {/* Header Hour Ruler */}
-          <div className="relative h-6 border-b border-[var(--color-rule)] text-[10px] text-[var(--color-muted)] font-mono-measured">
-            {hours.map((h) => {
-              const leftPercent = ((h * 60 - timelineStartMins) / totalMins) * 100;
-              return (
-                <div
-                  key={h}
-                  className="absolute transform -translate-x-1/2 flex flex-col items-center"
-                  style={{ left: `${leftPercent}%` }}
-                >
-                  <span>{h.toString().padStart(2, '0')}:00</span>
-                  <span className="w-[1px] h-1.5 bg-[var(--color-rule)] mt-0.5" />
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Tail Rows */}
-          <div className="relative divide-y divide-[var(--color-rule)]/50 pt-1">
-            {closure && (
+      <div style={{ overflowX: 'auto' }}>
+        <div style={{ minWidth: '760px' }}>
+          {/* Hour ruler */}
+          <div
+            className="mono"
+            style={{ position: 'relative', height: '20px', borderBottom: rule, fontSize: '9px', color: 'var(--color-muted)', marginLeft: '72px' }}
+          >
+            {hours.map((h) => (
               <div
-                className="absolute top-0 bottom-0 bg-[var(--color-accent-soft)] border-x border-[var(--color-accent)]/50 pointer-events-none z-10"
+                key={h}
                 style={{
-                  left: `${timeToPercent(closure.start_time)}%`,
-                  width: `${Math.max(
-                    2,
-                    timeToPercent(closure.end_time) - timeToPercent(closure.start_time)
-                  )}%`,
+                  position: 'absolute',
+                  left: `${((h * 60 - TL_START) / TL_RANGE) * 100}%`,
+                  transform: 'translateX(-50%)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
                 }}
               >
-                <span className="sticky top-0 text-[9px] font-mono-measured text-[var(--color-accent)] bg-[var(--color-paper-3)] px-1 py-0.5 border border-[var(--color-accent)] rounded block w-fit ml-0.5 mt-0.5">
-                  Stop: {closure.airport_id} ({closure.start_time} to {closure.end_time})
+                <span>{String(h).padStart(2, '0')}:00</span>
+                <span style={{ width: '1px', height: '4px', background: 'var(--color-rule)', marginTop: '1px' }} />
+              </div>
+            ))}
+          </div>
+
+          {/* Tail rows */}
+          <div style={{ position: 'relative' }}>
+            {/* Closure overlay */}
+            {closure && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0, bottom: 0,
+                  left: `calc(72px + ${pct(closure.start_time)}% * (100% - 72px) / 100)`,
+                  width: `${(pct(closure.end_time) - pct(closure.start_time)) / 100 * (100)}%`,
+                  background: 'rgba(229,149,0,0.06)',
+                  borderLeft: '1px solid rgba(229,149,0,0.3)',
+                  borderRight: '1px solid rgba(229,149,0,0.3)',
+                  pointerEvents: 'none',
+                  zIndex: 1,
+                }}
+              >
+                <span
+                  className="mono"
+                  style={{ fontSize: '8px', color: 'var(--color-accent)', background: 'var(--color-paper-2)', border: '1px solid var(--color-accent)', padding: '1px 4px', display: 'inline-block', margin: '3px 0 0 2px', borderRadius: '2px' }}
+                >
+                  {closure.airport_id} {closure.start_time}–{closure.end_time}
                 </span>
               </div>
             )}
 
-            {tails.map(([tailId, tailFlights]) => (
-              <div key={tailId} className="flex items-center py-1.5 hover:bg-[var(--color-paper-3)]/40 transition-colors">
-                <div className="w-20 shrink-0 text-xs font-mono-measured font-semibold text-[var(--color-ink-2)] flex items-center justify-between pr-2">
-                  <span>{tailId}</span>
-                  <span className="text-[10px] text-[var(--color-muted)] font-normal">
-                    L{tailFlights.length}
-                  </span>
+            {tails.map(([tailId, tf], ti) => (
+              <div
+                key={tailId}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  borderBottom: ti < tails.length - 1 ? '1px solid var(--color-rule)' : undefined,
+                  minHeight: '28px',
+                }}
+              >
+                {/* Tail label */}
+                <div
+                  className="mono"
+                  style={{ width: '72px', flexShrink: 0, fontSize: '9px', color: 'var(--color-ink-2)', paddingRight: '8px', textAlign: 'right' }}
+                >
+                  {tailId}
                 </div>
 
-                <div className="relative flex-1 h-6">
-                  {tailFlights.map((f) => {
-                    const schedLeft = timeToPercent(f.dep);
-                    const schedWidth = Math.max(1.5, timeToPercent(f.arr) - schedLeft);
-
-                    const actLeft = timeToPercent(f.actual_dep);
-                    const actWidth = Math.max(1.5, timeToPercent(f.actual_arr) - actLeft);
-
-                    const isSelected = selectedFlightId === f.flight_id;
+                {/* Flight bars */}
+                <div style={{ flex: 1, position: 'relative', height: '24px' }}>
+                  {tf.map((f) => {
+                    const sl = pct(f.dep);
+                    const sw = Math.max(1, pct(f.arr) - sl);
+                    const al = pct(f.actual_dep);
+                    const aw = Math.max(1, pct(f.actual_arr) - al);
+                    const isDelayed   = f.status === 'delayed';
                     const isCancelled = f.status === 'cancelled';
-                    const isDelayed = f.status === 'delayed';
-
-                    let barClass = 'bg-[var(--color-paper-3)] border border-[var(--color-rule-2)] text-[var(--color-ink)]';
-
-                    if (isCancelled) {
-                      barClass = 'bg-[var(--color-paper)] border border-dashed border-[var(--color-rule-2)] text-[var(--color-muted)] line-through';
-                    } else if (isDelayed) {
-                      barClass = 'bg-[var(--color-accent)] text-[var(--color-accent-ink)] font-semibold';
-                    }
+                    const isSel = selectedFlightId === f.flight_id;
 
                     return (
                       <React.Fragment key={f.flight_id}>
+                        {/* Ghost scheduled bar for delayed flights */}
                         {isDelayed && (
                           <div
-                            className="absolute top-1 h-4 border border-[var(--color-rule)] rounded-[3px] opacity-40 pointer-events-none"
-                            style={{ left: `${schedLeft}%`, width: `${schedWidth}%` }}
+                            style={{
+                              position: 'absolute',
+                              top: '6px', height: '12px',
+                              left: `${sl}%`, width: `${sw}%`,
+                              border: '1px dashed var(--color-rule-2)',
+                              borderRadius: '2px',
+                              opacity: 0.5,
+                              pointerEvents: 'none',
+                            }}
                           />
                         )}
-
+                        {/* Actual bar */}
                         <button
                           onClick={() => onSelectFlight(f.flight_id)}
-                          className={`absolute top-0.5 h-5 rounded-[3px] ${barClass} px-1.5 text-[9.5px] font-mono-measured flex items-center justify-between overflow-hidden shadow-sm transition-colors active:scale-95 cursor-pointer ${
-                            isSelected ? 'ring-2 ring-[var(--color-focus)] z-20' : 'z-10'
-                          }`}
+                          title={`${f.flight_id}: ${f.origin}–${f.destination} ${f.actual_dep}–${f.actual_arr}${isDelayed ? ` (+${f.arr_delay_mins}m)` : ''}`}
                           style={{
-                            left: `${actLeft}%`,
-                            width: `${actWidth}%`,
+                            position: 'absolute',
+                            top: '4px', height: '16px',
+                            left: `${al}%`, width: `${aw}%`,
+                            background: isCancelled ? 'transparent' : isDelayed ? 'var(--color-accent)' : 'var(--color-rule-2)',
+                            border: isCancelled ? '1px dashed var(--color-rule-2)' : isSel ? '1px solid var(--color-accent)' : 'none',
+                            borderRadius: '2px',
+                            overflow: 'hidden',
+                            cursor: 'pointer',
+                            padding: '0 3px',
+                            display: 'flex', alignItems: 'center',
+                            fontFamily: 'ui-monospace, monospace',
+                            fontSize: '7.5px',
+                            color: isCancelled ? 'var(--color-muted)' : isDelayed ? 'var(--color-accent-ink)' : 'var(--color-ink-2)',
+                            outline: isSel ? '1px solid var(--color-accent)' : 'none',
+                            outlineOffset: '1px',
+                            zIndex: isDelayed ? 2 : 1,
                           }}
-                          title={`${f.flight_id}: ${f.origin} to ${f.destination} (${f.actual_dep} to ${f.actual_arr}) ${
-                            isDelayed ? `+${f.arr_delay_mins}m delay` : ''
-                          }`}
                         >
-                          <span className="truncate">{f.flight_id}</span>
-                          <span className="text-[8.5px] opacity-80 ml-1">
-                            {f.origin} to {f.destination}
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {f.flight_id}
                           </span>
                         </button>
                       </React.Fragment>

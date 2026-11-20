@@ -18,177 +18,113 @@ export function NetworkMap({
   onSelectAirport,
   closureAirportId,
 }: NetworkMapProps) {
-  const minLng = 71.0;
-  const maxLng = 93.5;
-  const minLat = 7.5;
-  const maxLat = 32.0;
+  const minLng = 71.0, maxLng = 93.5, minLat = 7.5, maxLat = 32.0;
 
-  const project = useMemo(() => {
-    return (lat: number, lng: number) => {
-      const x = ((lng - minLng) / (maxLng - minLng)) * 540 + 40;
-      const y = ((maxLat - lat) / (maxLat - minLat)) * 520 + 40;
-      return { x, y };
-    };
-  }, []);
+  const project = useMemo(() => (lat: number, lng: number) => ({
+    x: ((lng - minLng) / (maxLng - minLng)) * 540 + 40,
+    y: ((maxLat - lat) / (maxLat - minLat)) * 520 + 40,
+  }), []);
 
   const airportMap = useMemo(() => {
-    const map = new Map<string, Airport & { x: number; y: number }>();
-    airports.forEach((apt) => {
-      const coords = project(apt.lat, apt.lng);
-      map.set(apt.id, { ...apt, ...coords });
-    });
-    return map;
+    const m = new Map<string, Airport & { x: number; y: number }>();
+    airports.forEach((a) => m.set(a.id, { ...a, ...project(a.lat, a.lng) }));
+    return m;
   }, [airports, project]);
 
   const routes = useMemo(() => {
-    const routeMap = new Map<
-      string,
-      {
-        origin: Airport & { x: number; y: number };
-        dest: Airport & { x: number; y: number };
-        totalFlights: number;
-        delayedFlights: number;
-        cancelledFlights: number;
-      }
-    >();
-
+    const rm = new Map<string, { ox: number; oy: number; dx: number; dy: number; disrupted: boolean; cancelled: boolean }>();
     flights.forEach((f) => {
-      const orig = airportMap.get(f.origin);
-      const dest = airportMap.get(f.destination);
-      if (!orig || !dest) return;
-
+      const o = airportMap.get(f.origin), d = airportMap.get(f.destination);
+      if (!o || !d) return;
       const key = `${f.origin}-${f.destination}`;
-      const existing = routeMap.get(key);
-      const isDelayed = f.status === 'delayed';
-      const isCancelled = f.status === 'cancelled';
-
-      if (existing) {
-        existing.totalFlights++;
-        if (isDelayed) existing.delayedFlights++;
-        if (isCancelled) existing.cancelledFlights++;
-      } else {
-        routeMap.set(key, {
-          origin: orig,
-          dest: dest,
-          totalFlights: 1,
-          delayedFlights: isDelayed ? 1 : 0,
-          cancelledFlights: isCancelled ? 1 : 0,
-        });
+      if (!rm.has(key)) {
+        rm.set(key, { ox: o.x, oy: o.y, dx: d.x, dy: d.y, disrupted: false, cancelled: false });
       }
+      const r = rm.get(key)!;
+      if (f.status === 'delayed') r.disrupted = true;
+      if (f.status === 'cancelled') r.cancelled = true;
     });
-
-    return Array.from(routeMap.values());
+    return Array.from(rm.values());
   }, [flights, airportMap]);
 
   return (
-    <div className="panel-minimal p-4 flex flex-col h-full">
-      <div className="flex items-center justify-between pb-3 border-b border-[var(--color-rule)] mb-3">
+    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      {/* Section label */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <div>
-          <h2 className="text-sm font-medium text-[var(--color-ink)]">
-            Air route telemetry map
-          </h2>
-          <p className="text-xs text-[var(--color-muted)]">
-            Sixteen hubs and spoke terminals with live arc vectors
-          </p>
+          <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-ink)' }}>Route network</div>
+          <div style={{ fontSize: '10px', color: 'var(--color-muted)', marginTop: '2px' }}>
+            Amber arcs show cascading disruption. Dim arcs are nominal.
+          </div>
         </div>
-        <div className="flex items-center gap-4 text-xs font-mono-measured">
-          <span className="flex items-center gap-1.5 text-[var(--color-muted)]">
-            <span className="w-2 h-2 rounded-full bg-[var(--color-muted)] inline-block" />
-            Nominal route
-          </span>
-          <span className="flex items-center gap-1.5 text-[var(--color-accent)]">
-            <span className="w-2 h-2 rounded-full bg-[var(--color-accent)] inline-block" />
-            Cascading delay or stop
-          </span>
-        </div>
+        {closureAirportId && (
+          <div
+            className="mono"
+            style={{ fontSize: '10px', color: 'var(--color-accent)', border: '1px solid var(--color-accent)', padding: '2px 8px', borderRadius: '2px' }}
+          >
+            Ground stop: {closureAirportId}
+          </div>
+        )}
       </div>
 
-      <div className="relative flex-1 flex items-center justify-center min-h-[380px] bg-[var(--color-paper-3)] rounded-[var(--radius-pill)] border border-[var(--color-rule)] overflow-hidden">
-        <svg
-          viewBox="0 0 620 600"
-          className="w-full h-full max-h-[500px]"
-          aria-label="Interactive India flight route map"
-        >
+      {/* SVG map */}
+      <div
+        style={{
+          background: 'var(--color-paper-2)',
+          border: '1px solid var(--color-rule)',
+          borderRadius: '4px',
+          overflow: 'hidden',
+        }}
+      >
+        <svg viewBox="0 0 620 600" style={{ width: '100%', maxHeight: '460px', display: 'block' }}>
+          {/* Subtle grid */}
           <defs>
-            <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
-              <path
-                d="M 30 0 L 0 0 0 30"
-                fill="none"
-                stroke="var(--color-rule)"
-                strokeWidth="0.5"
-                strokeOpacity="0.4"
-              />
+            <pattern id="g" width="30" height="30" patternUnits="userSpaceOnUse">
+              <path d="M30 0L0 0 0 30" fill="none" stroke="var(--color-rule)" strokeWidth="0.4" strokeOpacity="0.5" />
             </pattern>
           </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
+          <rect width="100%" height="100%" fill="url(#g)" />
 
-          {routes.map((route, i) => {
-            const { origin, dest, delayedFlights, cancelledFlights } = route;
-            const midX = (origin.x + dest.x) / 2;
-            const midY =
-              (origin.y + dest.y) / 2 -
-              Math.min(35, Math.hypot(dest.x - origin.x, dest.y - origin.y) * 0.18);
-            const pathD = `M ${origin.x} ${origin.y} Q ${midX} ${midY} ${dest.x} ${dest.y}`;
-
-            const isDisrupted = delayedFlights > 0 || cancelledFlights > 0;
-            const strokeColor = isDisrupted ? 'var(--color-accent)' : 'var(--color-ink)';
-            const strokeOpacity = isDisrupted ? 0.9 : 0.18;
-            const strokeWidth = isDisrupted ? 1.8 : 0.9;
-
+          {/* Route arcs — only 2 colors: amber (disrupted) or rule-dim (nominal) */}
+          {routes.map((r, i) => {
+            const mx = (r.ox + r.dx) / 2;
+            const my = (r.oy + r.dy) / 2 - Math.min(40, Math.hypot(r.dx - r.ox, r.dy - r.oy) * 0.18);
             return (
               <path
                 key={i}
-                d={pathD}
+                d={`M${r.ox} ${r.oy} Q${mx} ${my} ${r.dx} ${r.dy}`}
                 fill="none"
-                stroke={strokeColor}
-                strokeWidth={strokeWidth}
-                strokeOpacity={strokeOpacity}
-                strokeDasharray={cancelledFlights > 0 ? '4 3' : undefined}
+                stroke={r.disrupted ? 'var(--color-accent)' : 'var(--color-ink-2)'}
+                strokeWidth={r.disrupted ? 1.6 : 0.6}
+                strokeOpacity={r.disrupted ? 0.85 : 0.12}
+                strokeDasharray={r.cancelled ? '4 3' : undefined}
               />
             );
           })}
 
+          {/* Airport nodes */}
           {Array.from(airportMap.values()).map((apt) => {
-            const isSelected = selectedAirport === apt.id;
-            const isClosed = closureAirportId === apt.id;
-            const isMegaHub = apt.tier === 'mega_hub';
-
-            const nodeRadius = isMegaHub ? 4.5 : 3;
-
+            const sel = selectedAirport === apt.id;
+            const closed = closureAirportId === apt.id;
+            const big = apt.tier === 'mega_hub';
+            const r = big ? 4.5 : 3;
             return (
-              <g
-                key={apt.id}
-                className="cursor-pointer"
-                onClick={() => onSelectAirport(isSelected ? null : apt.id)}
-              >
-                {(isClosed || isSelected) && (
-                  <circle
-                    cx={apt.x}
-                    cy={apt.y}
-                    r={nodeRadius + 4}
-                    fill="none"
-                    stroke="var(--color-accent)"
-                    strokeWidth="1.5"
-                    strokeOpacity="0.8"
-                  />
+              <g key={apt.id} style={{ cursor: 'pointer' }} onClick={() => onSelectAirport(sel ? null : apt.id)}>
+                {(sel || closed) && (
+                  <circle cx={apt.x} cy={apt.y} r={r + 5} fill="none" stroke="var(--color-accent)" strokeWidth="1" strokeOpacity="0.5" />
                 )}
-
                 <circle
-                  cx={apt.x}
-                  cy={apt.y}
-                  r={nodeRadius}
-                  fill={isClosed ? 'var(--color-accent)' : 'var(--color-ink)'}
-                  stroke="var(--color-paper-3)"
-                  strokeWidth="1"
+                  cx={apt.x} cy={apt.y} r={r}
+                  fill={closed ? 'var(--color-accent)' : sel ? 'var(--color-ink)' : 'var(--color-ink-2)'}
+                  stroke="var(--color-paper-2)" strokeWidth="1"
                 />
-
                 <text
-                  x={apt.x + 8}
-                  y={apt.y + 3}
-                  fill={isClosed ? 'var(--color-accent)' : 'var(--color-ink)'}
-                  fontSize={isMegaHub ? '11px' : '9.5px'}
-                  fontWeight={isMegaHub ? '600' : '400'}
-                  className="font-mono-measured select-none"
+                  x={apt.x + 7} y={apt.y + 3}
+                  fill={closed ? 'var(--color-accent)' : 'var(--color-ink-2)'}
+                  fontSize={big ? '10px' : '9px'}
+                  fontWeight={big ? 600 : 400}
+                  fontFamily="ui-monospace, monospace"
+                  style={{ userSelect: 'none' }}
                 >
                   {apt.id}
                 </text>
@@ -196,28 +132,42 @@ export function NetworkMap({
             );
           })}
         </svg>
+      </div>
 
-        {selectedAirport && (
-          <div className="absolute bottom-3 left-3 panel-minimal p-2.5 text-xs border border-[var(--color-rule-2)] bg-[var(--color-paper-2)] max-w-xs shadow-lg">
-            <div className="flex justify-between items-center mb-1">
-              <span className="font-semibold text-[var(--color-ink)]">
-                {airportMap.get(selectedAirport)?.city} ({selectedAirport})
-              </span>
-              <button
-                onClick={() => onSelectAirport(null)}
-                className="text-[var(--color-muted)] hover:text-[var(--color-ink)] active:text-white text-xs ml-2 cursor-pointer"
-              >
-                ✕
-              </button>
+      {/* Airport tooltip */}
+      {selectedAirport && airportMap.get(selectedAirport) && (
+        <div
+          className="mono"
+          style={{
+            border: '1px solid var(--color-rule-2)',
+            padding: '10px 14px',
+            fontSize: '11px',
+            background: 'var(--color-paper-3)',
+            borderRadius: '4px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+          }}
+        >
+          <div>
+            <div style={{ fontWeight: 600, color: 'var(--color-ink)', marginBottom: '3px' }}>
+              {airportMap.get(selectedAirport)!.city} ({selectedAirport})
             </div>
-            <div className="text-[var(--color-muted)] space-y-0.5">
-              <p>Airport: {airportMap.get(selectedAirport)?.name}</p>
-              <p>Tier: {airportMap.get(selectedAirport)?.tier.replace('_', ' ')}</p>
-              <p>Runway capacity: {airportMap.get(selectedAirport)?.capacity_per_hour} flights per hour</p>
+            <div style={{ color: 'var(--color-muted)', fontSize: '10px' }}>
+              {airportMap.get(selectedAirport)!.name}
+            </div>
+            <div style={{ color: 'var(--color-muted)', fontSize: '10px', marginTop: '2px' }}>
+              {airportMap.get(selectedAirport)!.tier.replace('_', ' ')} — {airportMap.get(selectedAirport)!.capacity_per_hour} movements/hr
             </div>
           </div>
-        )}
-      </div>
+          <button
+            onClick={() => onSelectAirport(null)}
+            style={{ background: 'none', border: 'none', color: 'var(--color-muted)', cursor: 'pointer', fontSize: '14px', lineHeight: 1, padding: '0 4px' }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 }

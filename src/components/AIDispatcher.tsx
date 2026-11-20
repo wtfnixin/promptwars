@@ -18,252 +18,172 @@ export function AIDispatcher({
   activeRecoveries,
   onToggleRecovery,
 }: AIDispatcherProps) {
-  const [dispatcherBriefing, setDispatcherBriefing] = useState<{
-    summary: string;
-    rootCause: string;
-    recommendation: string;
-  } | null>(null);
+  const [briefing, setBriefing] = useState<{ summary: string; rootCause: string; recommendation: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function fetchBriefing() {
+    let alive = true;
+    async function fetch_() {
       setLoading(true);
       try {
         const res = await fetch('/api/dispatcher', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            result,
-            recoveryOptions,
-            baselineResult,
-          }),
+          body: JSON.stringify({ result, recoveryOptions, baselineResult }),
         });
-
-        if (res.ok) {
-          const data = await res.json();
-          if (isMounted) {
-            setDispatcherBriefing(data);
-          }
-        }
-      } catch (err) {
-        console.error('Failed to fetch dispatcher briefing:', err);
+        if (res.ok && alive) setBriefing(await res.json());
+      } catch {
+        // silent
       } finally {
-        if (isMounted) setLoading(false);
+        if (alive) setLoading(false);
       }
     }
-
-    fetchBriefing();
-
-    return () => {
-      isMounted = false;
-    };
+    fetch_();
+    return () => { alive = false; };
   }, [result, recoveryOptions, baselineResult]);
 
+  const rule = '1px solid var(--color-rule)';
+
   return (
-    <div className="panel-minimal p-4 flex flex-col gap-4">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-[var(--color-rule)] pb-2.5">
+    <div>
+      {/* Section header */}
+      <div style={{ padding: '14px 24px', borderBottom: rule, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[var(--color-accent)]" />
-            <h2 className="text-sm font-semibold text-[var(--color-ink)]">
-              AI network dispatcher and recovery recommendations
-            </h2>
+          <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-ink)' }}>AI dispatcher</div>
+          <div style={{ fontSize: '10px', color: 'var(--color-muted)', marginTop: '2px' }}>
+            Recovery recommendations with deterministic before/after verification
           </div>
-          <p className="text-xs text-[var(--color-muted)]">
-            Autonomous recovery optimization with deterministic before and after impact
+        </div>
+        <div className="mono" style={{ fontSize: '10px', color: activeRecoveries.length > 0 ? 'var(--color-accent)' : 'var(--color-muted)' }}>
+          {activeRecoveries.length > 0 ? `${activeRecoveries.length} intervention${activeRecoveries.length > 1 ? 's' : ''} active` : 'standby'}
+        </div>
+      </div>
+
+      {/* Briefing + recovery actions in a horizontal split */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: rule }}>
+        {/* Left: briefing */}
+        <div style={{ padding: '20px 24px', borderRight: rule }}>
+          <div className="mono" style={{ fontSize: '10px', color: 'var(--color-accent)', marginBottom: '10px', fontWeight: 600 }}>
+            {loading ? 'Computing assessment…' : 'Causal assessment'}
+          </div>
+          <p style={{ fontSize: '12px', color: 'var(--color-ink)', lineHeight: 1.6, margin: 0 }}>
+            {briefing?.summary || 'Evaluating network telemetry and propagation across all aircraft tail chains…'}
           </p>
-        </div>
-        <div className="text-xs font-mono-measured text-[var(--color-muted)]">
-          {activeRecoveries.length > 0 ? (
-            <span className="text-[var(--color-accent)] font-medium">
-              {activeRecoveries.length} recovery interventions active
-            </span>
-          ) : (
-            <span>Standby dispatch</span>
-          )}
-        </div>
-      </div>
-
-      {/* Operational Briefing Box */}
-      <div className="panel-subtle p-3.5 space-y-2 border border-[var(--color-rule-2)]">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-mono-measured text-[var(--color-accent)] font-semibold">
-            Operational causal assessment
-          </span>
-          {loading && (
-            <span className="text-[10px] text-[var(--color-muted)] font-mono-measured">
-              Computing lineage…
-            </span>
-          )}
-        </div>
-
-        <p className="text-xs text-[var(--color-ink)] leading-relaxed">
-          {dispatcherBriefing?.summary ||
-            'Evaluating network telemetry and propagation vectors across all 16 aircraft tail chains…'}
-        </p>
-
-        {dispatcherBriefing?.rootCause && (
-          <div className="pt-2 border-t border-[var(--color-rule)]/60">
-            <div className="text-[11px] text-[var(--color-muted)] font-semibold mb-1">
-              Cascade mechanism:
+          {briefing?.rootCause && (
+            <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--color-rule)' }}>
+              <div style={{ fontSize: '10px', color: 'var(--color-muted)', marginBottom: '6px' }}>Cascade mechanism</div>
+              <p style={{ fontSize: '11px', color: 'var(--color-ink-2)', lineHeight: 1.6, margin: 0 }}>{briefing.rootCause}</p>
             </div>
-            <p className="text-xs text-[var(--color-ink-2)] leading-normal">
-              {dispatcherBriefing.rootCause}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Recommended Recovery Actions */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xs font-semibold text-[var(--color-ink)]">
-            Algorithmic recovery interventions
-          </h3>
-          <span className="text-[10px] text-[var(--color-muted)] font-mono-measured">
-            Evaluated via deterministic lookahead
-          </span>
+          )}
+          {briefing?.recommendation && (
+            <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--color-rule)' }}>
+              <div style={{ fontSize: '10px', color: 'var(--color-muted)', marginBottom: '6px' }}>Recommendation</div>
+              <p style={{ fontSize: '11px', color: 'var(--color-ink-2)', lineHeight: 1.6, margin: 0 }}>{briefing.recommendation}</p>
+            </div>
+          )}
         </div>
 
-        {recoveryOptions.length === 0 ? (
-          <div className="panel-subtle p-3 text-center text-xs text-[var(--color-muted)]">
-            No recovery actions required. Flight schedule is nominal.
+        {/* Right: recovery actions */}
+        <div style={{ padding: '20px 24px' }}>
+          <div className="mono" style={{ fontSize: '10px', color: 'var(--color-muted)', marginBottom: '10px' }}>
+            Recovery interventions
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {recoveryOptions.map((opt) => {
-              const isApplied = activeRecoveries.some((a) => a.id === opt.id);
-
-              return (
-                <div
-                  key={opt.id}
-                  className={`panel-minimal p-3 border rounded-[var(--radius-card)] flex flex-col justify-between transition-colors ${
-                    isApplied
-                      ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)]'
-                      : 'border-[var(--color-rule)] hover:border-[var(--color-rule-2)]'
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs font-semibold text-[var(--color-ink)]">
+          {recoveryOptions.length === 0 ? (
+            <p style={{ fontSize: '11px', color: 'var(--color-muted)', margin: 0 }}>
+              No disruption active. Apply a ground stop to generate recovery options.
+            </p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {recoveryOptions.map((opt) => {
+                const applied = activeRecoveries.some((a) => a.id === opt.id);
+                return (
+                  <div
+                    key={opt.id}
+                    style={{
+                      border: applied ? '1px solid var(--color-accent)' : rule,
+                      background: applied ? 'rgba(229,149,0,0.07)' : 'var(--color-paper-3)',
+                      borderRadius: '3px',
+                      padding: '10px 12px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      gap: '12px',
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '11px', fontWeight: 600, color: applied ? 'var(--color-accent)' : 'var(--color-ink)', marginBottom: '3px', display: 'flex', gap: '8px', alignItems: 'center' }}>
                         {opt.title}
-                      </span>
-                      {opt.recommended_by_ai && (
-                        <span className="text-[9px] font-mono-measured font-semibold px-1.5 py-0.5 rounded bg-[var(--color-accent)] text-[var(--color-accent-ink)]">
-                          AI top pick
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-[var(--color-muted)] leading-relaxed mb-3">
-                      {opt.description}
-                    </p>
-                  </div>
-
-                  <div className="pt-2 border-t border-[var(--color-rule)]/60 flex items-center justify-between">
-                    <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono-measured">
-                      <div>
-                        <div className="text-[var(--color-accent)] font-bold">
-                          +{opt.score_improvement.delay_mins_saved}m
-                        </div>
-                        <div className="text-[9px] text-[var(--color-muted)]">Delay saved</div>
+                        {opt.recommended_by_ai && (
+                          <span className="mono" style={{ fontSize: '9px', background: 'var(--color-accent)', color: 'var(--color-accent-ink)', padding: '1px 5px', borderRadius: '2px', fontWeight: 700 }}>
+                            top pick
+                          </span>
+                        )}
                       </div>
-                      <div>
-                        <div className="text-[var(--color-accent)] font-bold">
-                          +{opt.score_improvement.passengers_saved}
-                        </div>
-                        <div className="text-[9px] text-[var(--color-muted)]">Pax saved</div>
-                      </div>
-                      <div>
-                        <div className="text-[var(--color-accent)] font-bold">
-                          +{opt.score_improvement.crew_violations_saved}
-                        </div>
-                        <div className="text-[9px] text-[var(--color-muted)]">Crews saved</div>
+                      <p style={{ fontSize: '10px', color: 'var(--color-muted)', margin: 0, lineHeight: 1.5 }}>{opt.description}</p>
+                      <div className="mono" style={{ marginTop: '6px', fontSize: '10px', color: 'var(--color-ink-2)' }}>
+                        {opt.score_improvement.delay_mins_saved}m delay saved — {opt.score_improvement.passengers_saved} pax rescued
                       </div>
                     </div>
-
                     <button
                       onClick={() => onToggleRecovery(opt)}
-                      className={`px-3 py-1.5 text-xs font-medium rounded-[var(--radius-pill)] transition-colors active:scale-95 disabled:opacity-50 cursor-pointer ${
-                        isApplied
-                          ? 'bg-[var(--color-accent)] text-[var(--color-accent-ink)] font-semibold'
-                          : 'bg-[var(--color-paper-3)] border border-[var(--color-rule)] text-[var(--color-ink)] hover:border-[var(--color-accent)]'
-                      }`}
+                      style={{
+                        background: applied ? 'var(--color-accent)' : 'none',
+                        border: applied ? 'none' : '1px solid var(--color-rule-2)',
+                        color: applied ? 'var(--color-accent-ink)' : 'var(--color-muted)',
+                        borderRadius: '3px',
+                        padding: '4px 10px',
+                        fontSize: '10px',
+                        fontWeight: applied ? 700 : 400,
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                      }}
                     >
-                      {isApplied ? 'Applied' : 'Apply action'}
+                      {applied ? 'Applied' : 'Apply'}
                     </button>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Before and After Delta Comparison Card */}
+      {/* Before/after delta bar — only shown when recovery is active */}
       {baselineResult && (
-        <div className="panel-minimal p-3.5 border border-[var(--color-accent)] bg-[var(--color-paper-3)] rounded-[var(--radius-card)]">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-[var(--color-accent)]">
-              Before versus after recovery impact delta
-            </span>
-            <span className="text-[10px] font-mono-measured text-[var(--color-muted)]">
-              Deterministic verification
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs font-mono-measured">
-            <div className="p-2 rounded bg-[var(--color-paper-2)] border border-[var(--color-rule)]">
-              <div className="text-[var(--color-muted)] text-[10px]">Total delay saved</div>
-              <div className="text-base font-bold text-[var(--color-accent)]">
-                {baselineResult.metrics.total_delay_minutes - result.metrics.total_delay_minutes} mins
-              </div>
-              <div className="text-[9px] text-[var(--color-muted)]">
-                {baselineResult.metrics.total_delay_minutes}m to {result.metrics.total_delay_minutes}m
-              </div>
+        <div
+          className="mono"
+          style={{ padding: '12px 24px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px', background: 'var(--color-rule)' }}
+        >
+          {[
+            {
+              label: 'Delay saved',
+              value: `${baselineResult.metrics.total_delay_minutes - result.metrics.total_delay_minutes}m`,
+              sub: `${baselineResult.metrics.total_delay_minutes}m to ${result.metrics.total_delay_minutes}m`,
+            },
+            {
+              label: 'Passengers rescued',
+              value: `${baselineResult.metrics.total_stranded_passengers - result.metrics.total_stranded_passengers}`,
+              sub: `${baselineResult.metrics.total_stranded_passengers} to ${result.metrics.total_stranded_passengers} stranded`,
+            },
+            {
+              label: 'Connections restored',
+              value: `${baselineResult.metrics.total_broken_connections - result.metrics.total_broken_connections}`,
+              sub: `${baselineResult.metrics.total_broken_connections} to ${result.metrics.total_broken_connections} broken`,
+            },
+            {
+              label: 'Crew violations averted',
+              value: `${baselineResult.metrics.total_crew_violations - result.metrics.total_crew_violations}`,
+              sub: `${baselineResult.metrics.total_crew_violations} to ${result.metrics.total_crew_violations} illegal`,
+            },
+          ].map((d, i) => (
+            <div key={i} style={{ padding: '10px 16px', background: 'var(--color-paper-3)' }}>
+              <div style={{ fontSize: '9px', color: 'var(--color-muted)', marginBottom: '4px' }}>{d.label}</div>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-accent)', letterSpacing: '-0.02em' }}>{d.value}</div>
+              <div style={{ fontSize: '9px', color: 'var(--color-muted)', marginTop: '2px' }}>{d.sub}</div>
             </div>
-
-            <div className="p-2 rounded bg-[var(--color-paper-2)] border border-[var(--color-rule)]">
-              <div className="text-[var(--color-muted)] text-[10px]">Passengers rescued</div>
-              <div className="text-base font-bold text-[var(--color-accent)]">
-                {baselineResult.metrics.total_stranded_passengers -
-                  result.metrics.total_stranded_passengers}{' '}
-                passengers
-              </div>
-              <div className="text-[9px] text-[var(--color-muted)]">
-                {baselineResult.metrics.total_stranded_passengers} to{' '}
-                {result.metrics.total_stranded_passengers} stranded
-              </div>
-            </div>
-
-            <div className="p-2 rounded bg-[var(--color-paper-2)] border border-[var(--color-rule)]">
-              <div className="text-[var(--color-muted)] text-[10px]">Connections preserved</div>
-              <div className="text-base font-bold text-[var(--color-accent)]">
-                {baselineResult.metrics.total_broken_connections -
-                  result.metrics.total_broken_connections}{' '}
-                routes
-              </div>
-              <div className="text-[9px] text-[var(--color-muted)]">
-                {baselineResult.metrics.total_broken_connections} to{' '}
-                {result.metrics.total_broken_connections} broken
-              </div>
-            </div>
-
-            <div className="p-2 rounded bg-[var(--color-paper-2)] border border-[var(--color-rule)]">
-              <div className="text-[var(--color-muted)] text-[10px]">Crew violations averted</div>
-              <div className="text-base font-bold text-[var(--color-accent)]">
-                {baselineResult.metrics.total_crew_violations -
-                  result.metrics.total_crew_violations}{' '}
-                crews
-              </div>
-              <div className="text-[9px] text-[var(--color-muted)]">
-                {baselineResult.metrics.total_crew_violations} to{' '}
-                {result.metrics.total_crew_violations} illegal
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       )}
     </div>

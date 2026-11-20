@@ -9,200 +9,152 @@ interface FlightTableProps {
   onSelectFlight: (id: string | null) => void;
 }
 
-export function FlightTable({
-  flights,
-  selectedFlightId,
-  onSelectFlight,
-}: FlightTableProps) {
+export function FlightTable({ flights, selectedFlightId, onSelectFlight }: FlightTableProps) {
   const [filter, setFilter] = useState<'all' | 'delayed' | 'cancelled'>('all');
   const [search, setSearch] = useState('');
 
-  const filteredFlights = flights.filter((f) => {
-    if (filter === 'delayed' && f.status !== 'delayed') return false;
+  const visible = flights.filter((f) => {
+    if (filter === 'delayed'   && f.status !== 'delayed')   return false;
     if (filter === 'cancelled' && f.status !== 'cancelled') return false;
-
     if (search.trim()) {
       const q = search.toLowerCase();
-      const match =
+      return (
         f.flight_id.toLowerCase().includes(q) ||
         f.tail_id.toLowerCase().includes(q) ||
         f.origin.toLowerCase().includes(q) ||
-        f.destination.toLowerCase().includes(q);
-      if (!match) return false;
+        f.destination.toLowerCase().includes(q)
+      );
     }
-
     return true;
   });
 
-  return (
-    <div className="panel-minimal p-4 flex flex-col gap-3">
-      {/* Table header & controls */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--color-rule)] pb-2.5">
-        <div>
-          <h2 className="text-sm font-medium text-[var(--color-ink)]">
-            Flight roster and causal trace
-          </h2>
-          <p className="text-xs text-[var(--color-muted)]">
-            Seventy active rotations with individual causal delay lineage
-          </p>
-        </div>
+  const rule = '1px solid var(--color-rule)';
+  const nDelayed   = flights.filter((f) => f.status === 'delayed').length;
+  const nCancelled = flights.filter((f) => f.status === 'cancelled').length;
 
-        <div className="flex items-center gap-2">
+  return (
+    <div style={{ padding: '20px 24px' }}>
+      {/* Header row */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+        <div>
+          <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-ink)' }}>Flight roster</div>
+          <div style={{ fontSize: '10px', color: 'var(--color-muted)', marginTop: '2px' }}>Seventy rotations with causal delay trace. Click any row to expand.</div>
+        </div>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <input
             type="text"
-            placeholder="Search flight, tail, city…"
+            placeholder="Search…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-[var(--color-paper-3)] border border-[var(--color-rule)] rounded-[var(--radius-pill)] px-2.5 py-1 text-xs text-[var(--color-ink)] font-mono-measured placeholder:text-[var(--color-muted)] w-44"
+            style={{
+              background: 'var(--color-paper-3)',
+              border: rule,
+              borderRadius: '3px',
+              color: 'var(--color-ink)',
+              padding: '4px 10px',
+              fontSize: '11px',
+              fontFamily: 'ui-monospace, monospace',
+              width: '140px',
+            }}
           />
-
-          <div className="flex rounded-[var(--radius-pill)] border border-[var(--color-rule)] overflow-hidden text-xs">
+          {(['all', 'delayed', 'cancelled'] as const).map((f) => (
             <button
-              onClick={() => setFilter('all')}
-              className={`px-2.5 py-1 transition-colors active:scale-95 cursor-pointer ${
-                filter === 'all'
-                  ? 'bg-[var(--color-paper-3)] text-[var(--color-ink)] font-medium'
-                  : 'text-[var(--color-muted)] hover:text-white'
-              }`}
+              key={f}
+              onClick={() => setFilter(f)}
+              style={{
+                background: filter === f ? 'var(--color-rule-2)' : 'none',
+                border: filter === f ? '1px solid var(--color-rule-2)' : '1px solid transparent',
+                color: filter === f && f === 'delayed' ? 'var(--color-accent)' : filter === f ? 'var(--color-ink)' : 'var(--color-muted)',
+                borderRadius: '3px',
+                padding: '4px 10px',
+                fontSize: '10px',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
             >
-              All ({flights.length})
+              {f === 'all' ? `All (${flights.length})` : f === 'delayed' ? `Delayed (${nDelayed})` : `Cancelled (${nCancelled})`}
             </button>
-            <button
-              onClick={() => setFilter('delayed')}
-              className={`px-2.5 py-1 border-l border-[var(--color-rule)] transition-colors active:scale-95 cursor-pointer ${
-                filter === 'delayed'
-                  ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)] font-medium'
-                  : 'text-[var(--color-muted)] hover:text-white'
-              }`}
-            >
-              Delayed ({flights.filter((f) => f.status === 'delayed').length})
-            </button>
-            <button
-              onClick={() => setFilter('cancelled')}
-              className={`px-2.5 py-1 border-l border-[var(--color-rule)] transition-colors active:scale-95 cursor-pointer ${
-                filter === 'cancelled'
-                  ? 'bg-[var(--color-paper-3)] text-[var(--color-muted)] font-medium'
-                  : 'text-[var(--color-muted)] hover:text-white'
-              }`}
-            >
-              Cancelled ({flights.filter((f) => f.status === 'cancelled').length})
-            </button>
-          </div>
+          ))}
         </div>
       </div>
 
-      {/* Flight rows table */}
-      <div className="overflow-x-auto max-h-[360px] overflow-y-auto">
-        <table className="w-full text-left text-xs border-collapse">
+      {/* Table */}
+      <div style={{ overflowX: 'auto', maxHeight: '340px', overflowY: 'auto', border: rule, borderRadius: '3px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
           <thead>
-            <tr className="border-b border-[var(--color-rule)] text-[10px] text-[var(--color-muted)] font-mono-measured">
-              <th className="py-1.5 px-2 font-normal">Flight</th>
-              <th className="py-1.5 px-2 font-normal">Tail</th>
-              <th className="py-1.5 px-2 font-normal">Leg</th>
-              <th className="py-1.5 px-2 font-normal">Route</th>
-              <th className="py-1.5 px-2 font-normal">Scheduled</th>
-              <th className="py-1.5 px-2 font-normal">Actual</th>
-              <th className="py-1.5 px-2 font-normal">Delay</th>
-              <th className="py-1.5 px-2 font-normal">Status</th>
+            <tr style={{ borderBottom: rule, position: 'sticky', top: 0, background: 'var(--color-paper-2)', zIndex: 2 }}>
+              {['Flight', 'Tail', 'Leg', 'Route', 'Scheduled', 'Actual', 'Delay', 'Status'].map((h) => (
+                <th
+                  key={h}
+                  style={{ padding: '7px 10px', textAlign: 'left', fontSize: '9px', color: 'var(--color-muted)', fontWeight: 400, fontFamily: 'ui-monospace, monospace' }}
+                >
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-[var(--color-rule)]/40 font-mono-measured">
-            {filteredFlights.map((f) => {
-              const isSelected = selectedFlightId === f.flight_id;
-              const isDelayed = f.status === 'delayed';
-              const isCancelled = f.status === 'cancelled';
+          <tbody>
+            {visible.map((f) => {
+              const sel  = selectedFlightId === f.flight_id;
+              const late = f.status === 'delayed';
+              const gone = f.status === 'cancelled';
 
               return (
                 <React.Fragment key={f.flight_id}>
                   <tr
-                    onClick={() => onSelectFlight(isSelected ? null : f.flight_id)}
-                    className={`cursor-pointer transition-colors ${
-                      isSelected
-                        ? 'bg-[var(--color-paper-3)] border-l-2 border-l-[var(--color-accent)]'
-                        : 'hover:bg-[var(--color-paper-3)]/60'
-                    }`}
+                    onClick={() => onSelectFlight(sel ? null : f.flight_id)}
+                    style={{
+                      borderBottom: '1px solid var(--color-rule)',
+                      background: sel ? 'var(--color-paper-3)' : undefined,
+                      cursor: 'pointer',
+                      borderLeft: sel ? '2px solid var(--color-accent)' : '2px solid transparent',
+                    }}
                   >
-                    <td className="py-2 px-2 font-bold text-[var(--color-ink)]">
-                      {f.flight_id}
-                    </td>
-                    <td className="py-2 px-2 text-[var(--color-ink-2)]">
+                    <td style={{ padding: '7px 10px', fontFamily: 'ui-monospace, monospace', fontWeight: 700, color: 'var(--color-ink)' }}>{f.flight_id}</td>
+                    <td style={{ padding: '7px 10px', fontFamily: 'ui-monospace, monospace', color: 'var(--color-ink-2)' }}>
                       {f.assigned_tail_id}
                       {f.assigned_tail_id !== f.tail_id && (
-                        <span className="ml-1 text-[9px] px-1 py-0.5 rounded border border-[var(--color-accent)] text-[var(--color-accent)]">
-                          Spare
-                        </span>
+                        <span style={{ marginLeft: '4px', fontSize: '8px', border: '1px solid var(--color-accent)', color: 'var(--color-accent)', padding: '1px 4px', borderRadius: '2px' }}>spare</span>
                       )}
                     </td>
-                    <td className="py-2 px-2 text-[var(--color-muted)]">L{f.leg_order}</td>
-                    <td className="py-2 px-2 font-medium">
-                      {f.origin} to {f.destination}
+                    <td style={{ padding: '7px 10px', fontFamily: 'ui-monospace, monospace', color: 'var(--color-muted)' }}>L{f.leg_order}</td>
+                    <td style={{ padding: '7px 10px', color: 'var(--color-ink)' }}>{f.origin} — {f.destination}</td>
+                    <td style={{ padding: '7px 10px', fontFamily: 'ui-monospace, monospace', color: 'var(--color-muted)' }}>{f.dep} — {f.arr}</td>
+                    <td style={{ padding: '7px 10px', fontFamily: 'ui-monospace, monospace', color: gone ? 'var(--color-muted)' : 'var(--color-ink-2)', textDecoration: gone ? 'line-through' : undefined }}>
+                      {gone ? 'Cancelled' : `${f.actual_dep} — ${f.actual_arr}`}
                     </td>
-                    <td className="py-2 px-2 text-[var(--color-muted)]">
-                      {f.dep} to {f.arr}
+                    <td style={{ padding: '7px 10px', fontFamily: 'ui-monospace, monospace', fontWeight: 700, color: late ? 'var(--color-accent)' : 'var(--color-muted)' }}>
+                      {f.arr_delay_mins > 0 ? `+${f.arr_delay_mins}m` : '0m'}
                     </td>
-                    <td className="py-2 px-2 font-semibold">
-                      {isCancelled ? (
-                        <span className="text-[var(--color-muted)] line-through">Cancelled</span>
-                      ) : (
-                        <span>
-                          {f.actual_dep} to {f.actual_arr}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-2 px-2 font-bold">
-                      {f.arr_delay_mins > 0 ? (
-                        <span className="text-[var(--color-accent)]">+{f.arr_delay_mins}m</span>
-                      ) : (
-                        <span className="text-[var(--color-muted)]">0m</span>
-                      )}
-                    </td>
-                    <td className="py-2 px-2">
-                      <span
-                        className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                          isCancelled
-                            ? 'border border-[var(--color-rule-2)] text-[var(--color-muted)]'
-                            : isDelayed
-                            ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)]'
-                            : 'text-[var(--color-muted)]'
-                        }`}
-                      >
-                        {f.status}
-                      </span>
+                    <td style={{ padding: '7px 10px', fontFamily: 'ui-monospace, monospace', fontSize: '10px', color: gone ? 'var(--color-muted)' : late ? 'var(--color-accent)' : 'var(--color-muted)' }}>
+                      {f.status}
                     </td>
                   </tr>
 
-                  {/* Expanded Causal Trace row */}
-                  {isSelected && (
-                    <tr className="bg-[var(--color-paper-3)]">
-                      <td colSpan={8} className="p-3 border-y border-[var(--color-rule)]">
-                        <div className="space-y-1.5 text-xs">
-                          <div className="font-semibold text-[var(--color-accent)] text-[11px]">
-                            Causal propagation trace for {f.flight_id} ({f.origin} to {f.destination})
+                  {sel && (
+                    <tr style={{ background: 'var(--color-paper-3)' }}>
+                      <td colSpan={8} style={{ padding: '12px 14px', borderBottom: rule }}>
+                        <div className="mono" style={{ fontSize: '10px', lineHeight: 1.7 }}>
+                          <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>
+                            Causal trace: {f.flight_id} ({f.origin} to {f.destination})
+                          </span>
+                          <div style={{ color: 'var(--color-ink-2)', marginTop: '4px' }}>
+                            Pax: {f.pax} — Block: {f.block_minutes}m — Load: {Math.round((f.pax / 180) * 100)}%
                           </div>
-                          <div className="text-[var(--color-ink-2)] space-y-1">
-                            <p>
-                              Passenger load: <strong>{f.pax}</strong> travelers (Seats: 180, Load factor: {Math.round((f.pax / 180) * 100)}%)
-                            </p>
-                            <p>
-                              Flight block time: <strong>{f.block_minutes}</strong> minutes
-                            </p>
-                            {f.delay_causes.length > 0 ? (
-                              f.delay_causes.map((cause, ci) => (
-                                <p key={ci} className="text-[var(--color-accent)]">
-                                  [{cause.type}] {cause.detail} (+{cause.delay_added_mins}m)
-                                </p>
-                              ))
-                            ) : (
-                              <p className="text-[var(--color-muted)]">
-                                No rotational or closure delay. Operating on planned schedule.
-                              </p>
-                            )}
-                            {f.cancellation_reason && (
-                              <p className="text-[var(--color-accent)] font-semibold">
-                                Cancellation reason: {f.cancellation_reason}
-                              </p>
-                            )}
-                          </div>
+                          {f.delay_causes.length > 0 ? (
+                            f.delay_causes.map((c, ci) => (
+                              <div key={ci} style={{ color: 'var(--color-accent)', marginTop: '2px' }}>
+                                [{c.type}] {c.detail} (+{c.delay_added_mins}m)
+                              </div>
+                            ))
+                          ) : (
+                            <div style={{ color: 'var(--color-muted)', marginTop: '2px' }}>No delay. Operating on planned schedule.</div>
+                          )}
+                          {f.cancellation_reason && (
+                            <div style={{ color: 'var(--color-accent)', fontWeight: 600, marginTop: '2px' }}>
+                              Cancellation: {f.cancellation_reason}
+                            </div>
+                          )}
                         </div>
                       </td>
                     </tr>

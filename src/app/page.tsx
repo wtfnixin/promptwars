@@ -22,9 +22,9 @@ const networkData = networkDataRaw as unknown as FlightNetworkData;
 export default function Home() {
   const [activeClosure, setActiveClosure] = useState<AirportClosure | null>({
     airport_id: 'BOM',
-    start_time: '08:30',
-    end_time: '10:00',
-    reason: 'Monsoon squall line over Chhatrapati Shivaji Maharaj Intl (BOM)',
+    start_time: '07:30',
+    end_time:   '09:00',
+    reason:     'Monsoon squall line over Chhatrapati Shivaji Maharaj Intl',
   });
 
   const [activeRecoveries, setActiveRecoveries] = useState<RecoveryAction[]>([]);
@@ -68,46 +68,41 @@ export default function Home() {
   const handleToggleRecovery = (action: RecoveryAction) => {
     setActiveRecoveries((prev) => {
       const exists = prev.some((a) => a.id === action.id);
-      if (exists) {
-        return prev.filter((a) => a.id !== action.id);
-      } else {
-        return [...prev, action];
-      }
+      return exists ? prev.filter((a) => a.id !== action.id) : [...prev, action];
     });
   };
 
   return (
-    <main className="min-h-screen bg-[var(--color-paper)] text-[var(--color-ink)] p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
-      {/* Top Operations Header */}
-      <header className="panel-console p-4 border border-[var(--color-rule)] flex flex-wrap items-center justify-between gap-4">
+    <main style={{ background: 'var(--color-paper)', color: 'var(--color-ink)', minHeight: '100vh' }}>
+      {/* ── Header ───────────────────────────────────────────────────────── */}
+      <header style={{ borderBottom: '1px solid var(--color-rule)', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 className="text-xl font-bold tracking-tight">
-            Domino Sky: Flight disruption cascade & recovery simulator
+          <h1 style={{ margin: 0, fontSize: '15px', fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--color-ink)' }}>
+            Domino Sky
           </h1>
-          <p className="text-xs text-[var(--color-muted)] mt-1">
-            Network operations across sixteen airports, seventy daily flights, and sixteen tails.
+          <p style={{ margin: '2px 0 0', fontSize: '11px', color: 'var(--color-muted)' }}>
+            Flight disruption cascade and recovery simulator. Sixteen airports, seventy daily rotations, sixteen aircraft tails.
           </p>
         </div>
-
-        <div className="flex items-center gap-4 text-xs font-mono-measured">
-          <div className="text-right">
-            <div className="text-[10px] text-[var(--color-muted)]">Calculation engine</div>
-            <div className="text-[var(--color-ink)] font-semibold">100% deterministic</div>
+        <div className="mono" style={{ display: 'flex', gap: '24px', fontSize: '11px' }}>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ color: 'var(--color-muted)', fontSize: '10px' }}>Engine</div>
+            <div style={{ color: 'var(--color-ink)', fontWeight: 600 }}>100% deterministic</div>
           </div>
-          <div className="h-6 w-[1px] bg-[var(--color-rule)]" />
-          <div className="text-right">
-            <div className="text-[10px] text-[var(--color-muted)]">Local timezone</div>
-            <div className="text-[var(--color-accent)] font-semibold">India Standard Time</div>
+          <div style={{ width: '1px', background: 'var(--color-rule)' }} />
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ color: 'var(--color-muted)', fontSize: '10px' }}>Timezone</div>
+            <div style={{ color: 'var(--color-accent)', fontWeight: 600 }}>IST</div>
           </div>
         </div>
       </header>
 
-      {/* KPI Metric Counters */}
+      {/* ── KPI rail ─────────────────────────────────────────────────────── */}
       <MetricCounters metrics={result.metrics} baselineMetrics={baselineResult?.metrics || null} />
 
-      {/* Primary Grid: Route Map & Disruption Injector */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        <div className="lg:col-span-7">
+      {/* ── Main two-column grid ─────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 0, borderBottom: '1px solid var(--color-rule)' }}>
+        <div style={{ borderRight: '1px solid var(--color-rule)' }}>
           <NetworkMap
             airports={networkData.airports}
             flights={result.flights}
@@ -116,8 +111,7 @@ export default function Home() {
             closureAirportId={activeClosure?.airport_id || null}
           />
         </div>
-
-        <div className="lg:col-span-5 flex flex-col gap-5">
+        <div>
           <DisruptionControl
             airports={networkData.airports}
             activeClosure={activeClosure}
@@ -127,60 +121,43 @@ export default function Home() {
               if (closure) setSelectedAirport(closure.airport_id);
             }}
           />
-
-          {/* Quick Context Summary Card */}
-          <div className="panel-console p-4 border border-[var(--color-rule)] flex-1 flex flex-col justify-between">
-            <div>
-              <h3 className="text-xs font-semibold text-[var(--color-ink)] mb-2">
-                Operational dispatch rules
-              </h3>
-              <p className="text-xs text-[var(--color-muted)] leading-relaxed mb-3">
-                Aircraft fly multiple legs per day in fixed tail rotations. When an aircraft is held, minimum turnaround buffers guarantee downstream rotational delays. Connections break when transfer slack drops below threshold.
-              </p>
-            </div>
-            <div className="pt-2.5 border-t border-[var(--color-rule)] text-[11px] font-mono-measured text-[var(--color-ink-2)] space-y-1">
-              <div>Spare bases: Bengaluru (VT-DS17) and Delhi (VT-DS18)</div>
-              <div>Legal crew duty ceiling: 600 minutes (10 hours)</div>
-              <div>Active network delay: {result.metrics.total_delay_minutes} minutes</div>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* AI Dispatcher & Recovery Section */}
-      <AIDispatcher
-        result={result}
-        baselineResult={baselineResult}
-        recoveryOptions={recoveryOptions}
-        activeRecoveries={activeRecoveries}
-        onToggleRecovery={handleToggleRecovery}
-      />
+      {/* ── AI Dispatcher ────────────────────────────────────────────────── */}
+      <div style={{ borderBottom: '1px solid var(--color-rule)' }}>
+        <AIDispatcher
+          result={result}
+          baselineResult={baselineResult}
+          recoveryOptions={recoveryOptions}
+          activeRecoveries={activeRecoveries}
+          onToggleRecovery={handleToggleRecovery}
+        />
+      </div>
 
-      {/* Domino Delay Cascade Timeline (Gantt) */}
-      <CascadeTimeline
-        flights={result.flights}
-        closure={activeClosure}
-        onSelectFlight={(id) => setSelectedFlightId(id)}
-        selectedFlightId={selectedFlightId}
-      />
+      {/* ── Cascade Timeline ─────────────────────────────────────────────── */}
+      <div style={{ borderBottom: '1px solid var(--color-rule)' }}>
+        <CascadeTimeline
+          flights={result.flights}
+          closure={activeClosure}
+          onSelectFlight={(id) => setSelectedFlightId(id)}
+          selectedFlightId={selectedFlightId}
+        />
+      </div>
 
-      {/* Detailed Flight Roster & Causal Trace */}
-      <FlightTable
-        flights={result.flights}
-        selectedFlightId={selectedFlightId}
-        onSelectFlight={setSelectedFlightId}
-      />
+      {/* ── Flight Roster ────────────────────────────────────────────────── */}
+      <div style={{ borderBottom: '1px solid var(--color-rule)' }}>
+        <FlightTable
+          flights={result.flights}
+          selectedFlightId={selectedFlightId}
+          onSelectFlight={setSelectedFlightId}
+        />
+      </div>
 
-      {/* Engineering Footer */}
-      <footer className="panel-console p-4 border border-[var(--color-rule)] text-xs text-[var(--color-muted)] flex flex-wrap items-center justify-between gap-3 font-mono-measured">
-        <div>
-          Domino Sky, Hack2Skill Prompt Wars
-        </div>
-        <div className="flex items-center gap-2">
-          <span>Console theme</span>
-          <span>(graphite)</span>
-          <span>Next.js 16</span>
-        </div>
+      {/* ── Footer ───────────────────────────────────────────────────────── */}
+      <footer className="mono" style={{ borderTop: '1px solid var(--color-rule)', padding: '10px 24px', fontSize: '10px', color: 'var(--color-muted)', display: 'flex', justifyContent: 'space-between' }}>
+        <span>Domino Sky — Hack2Skill Prompt Wars</span>
+        <span>Next.js 16 — TypeScript — Tailwind CSS 4</span>
       </footer>
     </main>
   );
