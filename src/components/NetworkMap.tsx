@@ -35,11 +35,11 @@ export function NetworkMap({
   const [corridorFilter, setCorridorFilter] = useState<'all' | 'disrupted'>('all');
   const [hoveredRoute, setHoveredRoute] = useState<CorridorRoute | null>(null);
 
-  // Geographic bounds for India airspace
-  const minLng = 70.0;
-  const maxLng = 94.0;
-  const minLat = 7.0;
-  const maxLat = 33.0;
+  // Geographic bounds for India airspace matched to official Natural Earth boundary
+  const minLng = 68.0;
+  const maxLng = 97.5;
+  const minLat = 6.5;
+  const maxLat = 37.5;
 
   const project = useMemo(() => (lat: number, lng: number) => ({
     x: ((lng - minLng) / (maxLng - minLng)) * 520 + 50,
@@ -200,14 +200,13 @@ export function NetworkMap({
           {/* Background grid */}
           <rect width="100%" height="100%" fill="url(#radar-grid)" />
 
-          {/* India Geographic Landmass Silhouette (Precision Flat Hairline, Zero Gradients) */}
+          {/* Official Natural Earth India Geographic Landmass (Zero Gradients, Minimal Line Art) */}
           <path
-            d="M 154 49 L 191 55 L 234 74 L 256 95 L 278 126 L 343 151 L 440 164 L 453 147 L 483 160 L 527 151 L 570 141 L 603 160 L 581 189 L 559 222 L 538 257 L 473 247 L 429 260 L 392 299 L 338 339 L 273 376 L 273 428 L 262 472 L 245 501 L 213 524 L 193 510 L 184 487 L 165 453 L 152 424 L 132 385 L 111 316 L 111 285 L 109 274 L 70 282 L 41 264 L 30 241 L 20 228 L 24 208 L 72 207 L 61 180 L 72 145 L 104 112 L 137 83 L 148 60 Z"
+            d="M 485 294 L 476 269 L 471 269 L 468 279 L 458 271 L 464 262 L 472 261 L 480 247 L 470 244 L 453 244 L 436 242 L 435 231 L 426 230 L 412 223 L 406 234 L 419 243 L 408 249 L 404 255 L 415 259 L 412 269 L 418 281 L 421 294 L 418 300 L 406 300 L 384 303 L 385 315 L 376 325 L 351 336 L 331 355 L 318 365 L 300 375 L 300 383 L 291 387 L 275 393 L 267 393 L 262 406 L 266 427 L 267 440 L 259 455 L 259 483 L 250 484 L 242 496 L 247 501 L 231 506 L 225 517 L 218 521 L 201 506 L 193 484 L 187 467 L 180 460 L 171 444 L 167 424 L 164 414 L 148 392 L 140 361 L 135 340 L 135 320 L 132 305 L 106 315 L 94 313 L 71 294 L 79 288 L 74 281 L 53 268 L 65 257 L 104 257 L 100 243 L 90 235 L 88 223 L 77 215 L 96 198 L 117 200 L 135 183 L 146 166 L 163 150 L 163 139 L 178 129 L 164 121 L 158 110 L 151 96 L 160 89 L 187 93 L 206 91 L 223 77 L 242 96 L 241 109 L 248 118 L 247 126 L 234 124 L 239 142 L 257 152 L 281 163 L 270 170 L 263 185 L 280 192 L 297 199 L 320 208 L 344 211 L 354 219 L 368 220 L 389 224 L 404 224 L 406 217 L 403 207 L 405 200 L 415 197 L 417 210 L 417 213 L 433 219 L 444 216 L 459 217 L 474 217 L 475 207 L 468 202 L 482 200 L 498 188 L 518 178 L 533 182 L 546 175 L 554 185 L 548 192 L 567 194 L 568 200 L 562 203 L 564 213 L 551 210 L 528 221 L 529 230 L 519 244 L 518 252 L 510 265 L 496 261 L 496 278 L 492 284 L 494 291 L 485 294 Z"
             fill="var(--color-paper-3)"
-            fillOpacity="0.4"
+            fillOpacity="0.45"
             stroke="var(--color-rule-2)"
             strokeWidth="0.8"
-            strokeDasharray="2 2"
           />
 
           {/* Graticule Latitude / Longitude lines */}
