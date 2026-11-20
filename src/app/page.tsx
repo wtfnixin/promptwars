@@ -16,13 +16,10 @@ import { DisruptionControl } from '@/components/DisruptionControl';
 import { CascadeTimeline } from '@/components/CascadeTimeline';
 import { AIDispatcher } from '@/components/AIDispatcher';
 import { FlightTable } from '@/components/FlightTable';
-import { SkiperThemeToggle } from '@/components/SkiperThemeToggle';
 
 const networkData = networkDataRaw as unknown as FlightNetworkData;
 
 export default function Home() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-
   const [activeClosure, setActiveClosure] = useState<AirportClosure | null>({
     airport_id: 'BOM',
     start_time: '07:30',
@@ -45,25 +42,6 @@ export default function Home() {
   );
 
   const [recoveryOptions, setRecoveryOptions] = useState<RecoveryAction[]>([]);
-
-  useEffect(() => {
-    // Check saved theme or media query
-    const savedTheme = localStorage.getItem('domino-sky-theme') as 'dark' | 'light' | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-      setTheme('light');
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(nextTheme);
-    localStorage.setItem('domino-sky-theme', nextTheme);
-    document.documentElement.setAttribute('data-theme', nextTheme);
-  };
 
   const updateSimulation = useCallback(() => {
     const newResult = runSimulation(networkData, activeClosure, activeRecoveries);
@@ -107,20 +85,15 @@ export default function Home() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          {/* Skiper Animated Theme Transition Toggle */}
-          <SkiperThemeToggle />
-
-          <div className="mono" style={{ display: 'flex', gap: '20px', fontSize: '11px' }}>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ color: 'var(--color-muted)', fontSize: '10px' }}>Engine</div>
-              <div style={{ color: 'var(--color-ink)', fontWeight: 600 }}>100% deterministic</div>
-            </div>
-            <div style={{ width: '1px', background: 'var(--color-rule)' }} />
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ color: 'var(--color-muted)', fontSize: '10px' }}>Timezone</div>
-              <div style={{ color: 'var(--color-accent)', fontWeight: 600 }}>IST</div>
-            </div>
+        <div className="mono" style={{ display: 'flex', gap: '20px', fontSize: '11px' }}>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ color: 'var(--color-muted)', fontSize: '10px' }}>Engine</div>
+            <div style={{ color: 'var(--color-ink)', fontWeight: 600 }}>100% deterministic</div>
+          </div>
+          <div style={{ width: '1px', background: 'var(--color-rule)' }} />
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ color: 'var(--color-muted)', fontSize: '10px' }}>Timezone</div>
+            <div style={{ color: 'var(--color-accent)', fontWeight: 600 }}>IST</div>
           </div>
         </div>
       </header>

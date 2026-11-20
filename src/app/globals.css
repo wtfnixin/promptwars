@@ -1,8 +1,7 @@
-/* Hallmark Console · domino-sky · 2-color system with dark/light themes */
+/* Hallmark Console · domino-sky · Pure 2-color: Dark Carbon + Operational Amber */
 @import "tailwindcss";
 
 :root {
-  /* Default: Dark Mode (Carbon & Vibrant Aviation Amber) */
   --color-paper:   #0c0d0e;
   --color-paper-2: #141619;
   --color-paper-3: #1b1e22;
@@ -20,25 +19,6 @@
   --color-focus:      #f59e0b;
 
   --radius: 4px;
-}
-
-[data-theme="light"] {
-  /* High-Contrast Light Mode (Deep Charcoal Text on Off-White with Bright Amber) */
-  --color-paper:   #ffffff;
-  --color-paper-2: #f6f7f9;
-  --color-paper-3: #eceef2;
-
-  --color-rule:   #d2d6df;
-  --color-rule-2: #b4bac6;
-
-  --color-ink:   #090a0d;
-  --color-ink-2: #242831;
-  --color-muted: #575e6d;
-
-  --color-accent:     #d97706;
-  --color-accent-dim: rgba(217, 119, 6, 0.16);
-  --color-accent-ink: #ffffff;
-  --color-focus:      #d97706;
 }
 
 html, body {
